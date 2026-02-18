@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pixel Garden">
+<meta name="theme-color" content="#008080">
+<title>🌱 Pixel Garden - Habit Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+
+  :root {
+    --win-gray: #c0c0c0;
+    --win-dark: #808080;
+    --win-darker: #404040;
+    --win-white: #ffffff;
+    --win-blue: #000080;
+    --win-blue-light: #1084d0;
+    --win-black: #000000;
+    --pixel-dark-green: #006622;
+    --pixel-brown: #8B4513;
+    --pixel-soil: #5C3317;
+    --pixel-sky: #5ba8ff;
+    --pixel-gold: #FFD700;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+  body { font-family: 'VT323', monospace; font-size: 18px; min-height: 100vh; overflow-x: hidden; }
+
+  .desktop {
+    min-height: 100vh;
+    background-color: #008080;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
+    padding: 8px; padding-bottom: 50px;
+  }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.hidden { display: none; }
+
+  .modal-window {
+    background: var(--win-gray);
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    box-shadow: 6px 6px 0 var(--win-black);
+    width: 420px; max-width: 95vw;
+    animation: windowPop 0.25s ease;
+  }
+  @keyframes windowPop {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .modal-welcome-art {
+    text-align: center; font-size: 40px; padding: 8px 0 4px;
+    animation: bounce 1s ease infinite alternate;
+  }
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+
+  .modal-tagline {
+    font-family: 'Press Start 2P', monospace; font-size: 8px;
+    text-align: center; color: var(--win-blue); line-height: 1.8;
+  }
+
+  .modal-divider {
+    border: none; border-top: 1px solid var(--win-darker);
+    border-bottom: 1px solid var(--win-white); margin: 2px 0;
+  }
+
+  .modal-form-row { display: flex; flex-direction: column; gap: 3px; }
+  .modal-form-row label { font-family: 'Press Start 2P', monospace; font-size: 7px; }
+
+  .modal-form-inline { display: flex; gap: 8px; }
+  .modal-form-inline .win-input { flex: 1; }
+
+  .notif-section {
+    background: #e8e8e8;
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    padding: 8px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .notif-section label { font-family: 'Press Start 2P', monospace; font-size: 7px; }
+  .notif-toggle-row { display: flex; align-items: center; gap: 8px; }
+  .notif-time-row { display: flex; align-items: center; gap: 8px; }
+  .notif-time-row span { font-family: 'VT323', monospace; font-size: 18px; }
+
+  /* Win95 checkbox */
+  .win-checkbox-label {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    font-family: 'VT323', monospace; font-size: 18px;
+  }
+  .win-checkbox {
+    width: 14px; height: 14px; background: white; flex-shrink: 0;
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+    color: var(--win-blue); font-weight: bold; cursor: pointer;
+  }
+  input[type=checkbox] { display: none; }
+
+  .notif-status {
+    font-family: 'VT323', monospace; font-size: 15px; color: #555; min-height: 18px;
+  }
+  .notif-status.ok { color: #006622; }
+  .notif-status.err { color: #aa0000; }
+
+  .modal-btn-row { display: flex; justify-content: center; padding-top: 4px; }
+
+  /* ── WIN SHARED ── */
+  .window {
+    background: var(--win-gray);
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    box-shadow: 2px 2px 0 var(--win-black);
+  }
+  .title-bar {
+    background: linear-gradient(90deg, var(--win-blue), var(--win-blue-light));
+    color: white; font-family: 'Press Start 2P', monospace; font-size: 9px;
+    padding: 4px 6px; display: flex; align-items: center; justify-content: space-between;
+    cursor: default; user-select: none;
+  }
+  .title-bar-text { display: flex; align-items: center; gap: 6px; }
+  .title-bar-controls { display: flex; gap: 2px; }
+  .win-btn {
+    background: var(--win-gray);
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    width: 16px; height: 16px; font-size: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'VT323', monospace; line-height: 1;
+  }
+  .win-input {
+    font-family: 'VT323', monospace; font-size: 18px; background: white;
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    padding: 2px 6px; outline: none; width: 100%; color: black;
+  }
+  .win-input:focus { outline: 1px dotted #000080; }
+  .win-select {
+    font-family: 'VT323', monospace; font-size: 18px; background: white;
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    padding: 2px 6px; width: 100%; color: black;
+  }
+  .action-btn {
+    font-family: 'Press Start 2P', monospace; font-size: 7px; background: var(--win-gray);
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    padding: 6px 14px; cursor: pointer; color: black;
+  }
+  .action-btn:hover { background: #d4d4d4; }
+  .action-btn:active {
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+  }
+  .action-btn.primary {
+    background: var(--win-blue); color: white;
+    border-top: 2px solid #4444aa; border-left: 2px solid #4444aa;
+    border-right: 2px solid #000044; border-bottom: 2px solid #000044;
+  }
+  .action-btn.primary:hover { background: #0000aa; }
+
+  /* ── MAIN ── */
+  .main-window { max-width: 1020px; margin: 0 auto; }
+  .window-body { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .garden-panel { grid-column: 1 / -1; }
+
+  /* ── GARDEN ── */
+  .garden-canvas-wrapper {
+    background: var(--pixel-sky);
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    position: relative; height: 220px; overflow: hidden;
+  }
+  .soil-strip { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: var(--pixel-soil); border-top: 4px solid var(--pixel-brown); }
+  .grass-strip { position: absolute; bottom: 36px; left: 0; right: 0; height: 8px; background: var(--pixel-dark-green); }
+  .plants-row { position: absolute; bottom: 36px; left: 0; right: 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 0 20px; }
+
+  .plant-slot { display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative; }
+  .plant-label {
+    font-family: 'VT323', monospace; font-size: 12px; color: var(--win-black);
+    background: rgba(192,192,192,0.92); padding: 1px 4px; border: 1px solid var(--win-darker);
+    position: absolute; bottom: -22px; white-space: nowrap; pointer-events: none;
+  }
+  .plant-slot.fertilized canvas { animation: fertGlow 1.5s ease-in-out infinite alternate; }
+  @keyframes fertGlow { from { filter: drop-shadow(0 0 3px #7CFC00); } to { filter: drop-shadow(0 0 9px #7CFC00) drop-shadow(0 0 14px #ADFF2F); } }
+  .plant-slot.dead canvas { filter: grayscale(100%) brightness(0.5); opacity: 0.6; }
+
+  .fert-badge { position: absolute; top: -8px; right: -8px; font-size: 14px; pointer-events: none; animation: bob 0.7s ease infinite alternate; }
+  .skull-badge { position: absolute; top: -8px; right: -8px; font-size: 14px; pointer-events: none; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+
+  .pixel-sun { position: absolute; top: 16px; right: 24px; width: 24px; height: 24px; background: #FFD700; box-shadow: 0 -8px 0 #FFD700, 0 8px 0 #FFD700, -8px 0 0 #FFD700, 8px 0 0 #FFD700, -6px -6px 0 #FFD700, 6px -6px 0 #FFD700, -6px 6px 0 #FFD700, 6px 6px 0 #FFD700; transition: opacity 0.5s; }
+  .pixel-sun.rainy { opacity: 0.3; }
+
+  .rain-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; opacity: 0; transition: opacity 0.4s; }
+  .rain-overlay.active { opacity: 1; }
+  .raindrop { position: absolute; width: 2px; background: rgba(100,180,255,0.7); animation: fall linear infinite; top: -20px; }
+  @keyframes fall { to { transform: translateY(260px); } }
+  .garden-canvas-wrapper.raining { animation: rainPulse 2s ease infinite; }
+  @keyframes rainPulse { 0%,100% { background-color: #3a6fa8; } 50% { background-color: #2a5088; } }
+
+  /* ── XP BAR ── */
+  .xp-bar-row { padding: 4px 6px; display: flex; align-items: center; gap: 8px; }
+  .progress-bar-wrapper { background: var(--win-darker); border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); height: 18px; padding: 2px; flex: 1; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #000080, #1084d0); transition: width 0.5s steps(20); }
+  .progress-bar-fill.fert { background: linear-gradient(90deg, #228B22, #7CFC00); }
+  .progress-bar-fill.rain { background: linear-gradient(90deg, #1a6ea8, #64b4ff); }
+
+  /* ── HABIT LIST ── */
+  .habits-panel, .add-panel { display: flex; flex-direction: column; }
+  .panel-inner { background: white; border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); flex: 1; padding: 6px; max-height: 360px; overflow-y: auto; }
+  .panel-inner::-webkit-scrollbar { width: 16px; }
+  .panel-inner::-webkit-scrollbar-track { background: var(--win-gray); }
+  .panel-inner::-webkit-scrollbar-thumb { background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); }
+
+  .habit-row { display: flex; align-items: center; gap: 6px; padding: 5px 2px; border-bottom: 1px solid #ddd; cursor: pointer; transition: background 0.1s; }
+  .habit-row:hover { background: #000080; color: white; }
+  .habit-row:hover .habit-name, .habit-row:hover .habit-goal-tag, .habit-row:hover .habit-progress-mini, .habit-row:hover .habit-health { color: white !important; }
+  .habit-row:hover .habit-streak { color: #ffff88; }
+  .habit-row.wilting-1 { background: #fff8e0; }
+  .habit-row.wilting-2 { background: #ffe8b0; }
+  .habit-row.wilting-3 { background: #ffd080; }
+  .habit-row.wilting-4 { background: #ffb060; }
+  .habit-row.dead-habit { background: #e0d0c0; opacity: 0.75; }
+
+  .habit-check { width: 18px; height: 18px; background: white; border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; color: #006622; font-weight: bold; }
+  .habit-done .habit-check { background: #e8ffe8; }
+  .habit-fertilized .habit-check { background: #d0ffd0; border-color: #3a3; }
+  .dead-habit .habit-check { background: #ccc; color: #888; }
+
+  .habit-name { flex: 1; font-family: 'VT323', monospace; font-size: 18px; color: var(--win-black); }
+  .habit-goal-tag { font-family: 'VT323', monospace; font-size: 13px; color: #555; background: #eee; padding: 1px 4px; border: 1px solid #aaa; white-space: nowrap; }
+  .habit-progress-mini { font-family: 'VT323', monospace; font-size: 15px; color: #000080; white-space: nowrap; }
+  .habit-progress-mini.goal-met { color: #228B22; font-weight: bold; }
+  .habit-health { font-family: 'VT323', monospace; font-size: 13px; white-space: nowrap; }
+  .habit-streak { font-family: 'VT323', monospace; font-size: 15px; color: #800000; }
+  .habit-plant-icon { font-size: 18px; }
+  .delete-btn { font-size: 12px; cursor: pointer; opacity: 0.35; padding: 0 4px; flex-shrink: 0; }
+  .habit-row:hover .delete-btn { opacity: 1; color: white; }
+  .replant-btn { font-family: 'Press Start 2P', monospace; font-size: 6px; background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); padding: 3px 6px; cursor: pointer; color: black; white-space: nowrap; }
+  .replant-btn:active { border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); }
+
+  .empty-state { text-align: center; padding: 20px; color: var(--win-dark); font-family: 'VT323', monospace; font-size: 18px; line-height: 1.8; }
+
+  /* ── ADD FORM ── */
+  .form-row { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px 0; }
+  .form-row label { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--win-black); }
+  .freq-sub { display: none; flex-direction: column; gap: 4px; background: #e0e0e0; border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); padding: 6px 8px; margin: 4px 6px 0; }
+  .freq-sub.visible { display: flex; }
+  .freq-sub label { font-family: 'Press Start 2P', monospace; font-size: 7px; }
+  .freq-sub .sub-row { display: flex; gap: 8px; align-items: center; }
+  .freq-sub .sub-row .win-input { width: 60px; }
+  .btn-row { display: flex; gap: 6px; justify-content: flex-end; padding: 6px; }
+
+  /* ── STATUS / TASKBAR ── */
+  .status-bar { display: flex; gap: 2px; padding: 2px 4px; border-top: 1px solid var(--win-darker); font-family: 'VT323', monospace; font-size: 16px; flex-wrap: wrap; }
+  .status-segment { border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); padding: 1px 8px; }
+  .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 40px; background: var(--win-gray); border-top: 2px solid var(--win-white); display: flex; align-items: center; gap: 4px; padding: 0 4px; z-index: 100; }
+  .start-btn { font-family: 'Press Start 2P', monospace; font-size: 8px; background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); padding: 4px 8px; cursor: pointer; height: 30px; }
+  .taskbar-clock { margin-left: auto; border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); padding: 4px 10px; font-family: 'VT323', monospace; font-size: 16px; }
+
+  /* ── TOAST ── */
+  .popup-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); box-shadow: 4px 4px 0 black; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s; min-width: 300px; }
+  .popup-toast.show { opacity: 1; }
+  .popup-toast-body { padding: 12px 16px; font-family: 'VT323', monospace; font-size: 20px; text-align: center; }
+
+  @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-55px); opacity: 0; } }
+  .float-text { position: fixed; pointer-events: none; z-index: 999; font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--pixel-gold); text-shadow: 1px 1px 0 black; animation: floatUp 1.3s forwards; }
+  .float-text.fert-text { color: #7CFC00; font-size: 11px; }
+  .float-text.rain-text { color: #64b4ff; font-size: 11px; }
+
+  @keyframes splash { 0% { opacity: 0; transform: scale(0.4); } 30% { opacity: 1; transform: scale(1.1); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
+  .splash-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 500; display: flex; align-items: center; justify-content: center; font-size: 90px; animation: splash 1.8s forwards; }
+
+  canvas.plant-canvas { image-rendering: pixelated; display: block; }
+
+  /* ── SETTINGS COG in title bar ── */
+  .settings-cog { cursor: pointer; font-size: 12px; padding: 0 4px; opacity: 0.85; }
+  .settings-cog:hover { opacity: 1; }
+
+  /* ═══════════════════════════════════
+     MOBILE RESPONSIVE
+  ════════════════════════════════════ */
+  @media (max-width: 640px) {
+
+    /* Safe area padding for iPhone notch/home bar */
+    body { padding-bottom: env(safe-area-inset-bottom); }
+
+    .desktop {
+      padding: 4px 4px 60px 4px;
+    }
+
+    /* Single-column layout */
+    .window-body {
+      grid-template-columns: 1fr !important;
+      padding: 4px;
+      gap: 6px;
+    }
+
+    .garden-panel { grid-column: 1 / -1; }
+
+    /* Shorter garden on mobile so more fits above fold */
+    .garden-canvas-wrapper { height: 160px; }
+
+    /* Bigger touch targets on habit rows */
+    .habit-row {
+      padding: 10px 6px;
+      gap: 8px;
+    }
+    .habit-check { width: 26px; height: 26px; font-size: 18px; flex-shrink: 0; }
+
+    /* Larger font for readability */
+    .habit-name { font-size: 20px; }
+    .habit-goal-tag { font-size: 15px; padding: 2px 6px; }
+    .habit-progress-mini { font-size: 17px; }
+    .habit-health { font-size: 15px; }
+    .habit-streak { font-size: 17px; }
+
+    /* Hide habit-health label on very small screens to save space */
+    .habit-health { display: none; }
+
+    /* Panel height — let it breathe on mobile */
+    .panel-inner { max-height: none; }
+
+    /* Form fields bigger touch targets */
+    .win-input, .win-select {
+      font-size: 20px;
+      padding: 6px 8px;
+      min-height: 38px;
+    }
+    .form-row { padding: 6px 6px 0; }
+    .freq-sub { margin: 4px 6px 0; padding: 8px; }
+    .freq-sub .sub-row .win-input { width: 70px; }
+
+    /* Bigger action buttons */
+    .action-btn { font-size: 8px; padding: 10px 16px; }
+    .replant-btn { font-size: 7px; padding: 6px 8px; }
+    .btn-row { padding: 8px; }
+
+    /* Title bar — shrink text so it fits */
+    .title-bar { font-size: 7px; padding: 5px 6px; }
+    .title-bar-text { font-size: 7px; gap: 4px; }
+    .win-btn { width: 20px; height: 20px; font-size: 12px; }
+
+    /* Status bar — wrap and bigger text */
+    .status-bar { font-size: 14px; flex-wrap: wrap; }
+    .status-segment { padding: 2px 6px; font-size: 14px; }
+
+    /* Taskbar — simpler on mobile, taller touch target */
+    .taskbar {
+      height: 48px;
+      padding: 0 8px;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .taskbar-clock { font-size: 18px; padding: 6px 12px; }
+    .start-btn { font-size: 7px; padding: 6px 10px; }
+
+    /* Toast — full width on mobile */
+    .popup-toast {
+      width: calc(100vw - 16px);
+      min-width: unset;
+      top: 8px;
+      left: 8px;
+      transform: none;
+    }
+    .popup-toast-body { font-size: 17px; padding: 10px 12px; }
+
+    /* Modal — full screen on mobile */
+    .modal-overlay { align-items: flex-end; }
+    .modal-window {
+      width: 100%;
+      max-width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      border-bottom: none;
+      box-shadow: 0 -4px 0 var(--win-black);
+      border-radius: 0;
+    }
+    .modal-body { padding: 12px; gap: 8px; }
+    .modal-welcome-art { font-size: 32px; }
+    .modal-tagline { font-size: 7px; }
+    .modal-form-inline { flex-direction: column; gap: 6px; }
+    .win-checkbox-label { font-size: 20px; }
+    .win-checkbox { width: 20px; height: 20px; font-size: 16px; }
+    .notif-status { font-size: 14px; }
+    .notif-time-row span { font-size: 20px; }
+
+    /* XP bar row */
+    .xp-bar-row { padding: 4px 4px; gap: 6px; }
+    .xp-bar-row span { font-size: 13px !important; }
+
+    /* Float text — keep visible but not too huge */
+    .float-text { font-size: 8px; }
+
+    /* Plants row — tighter spacing on narrow screens */
+    .plants-row { padding: 0 8px; }
+    .plant-label { font-size: 10px; }
+
+    /* Delete btn — bigger tap zone */
+    .delete-btn { font-size: 16px; padding: 4px 8px; opacity: 0.5; }
+
+    /* Add panel hint text */
+    .add-panel > div[style*="padding:4px 8px"] { font-size: 13px !important; }
+  }
+
+  /* Medium screens (tablet) */
+  @media (min-width: 641px) and (max-width: 900px) {
+    .window-body { grid-template-columns: 1fr 1fr; }
+    .garden-panel { grid-column: 1 / -1; }
+    .garden-canvas-wrapper { height: 190px; }
+    .panel-inner { max-height: 280px; }
+  }
+
+  /* ── iPhone install banner ── */
+  .install-banner {
+    display: none;
+    background: var(--win-blue);
+    color: white;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    padding: 8px 12px;
+    text-align: center;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .install-banner strong { font-family: 'Press Start 2P', monospace; font-size: 8px; display: block; margin-bottom: 4px; }
+  .install-banner.visible { display: block; }
+
+  /* iOS install instructions modal */
+  .ios-install-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 2000;
+  }
+  .ios-install-modal.hidden { display: none; }
+  .ios-install-box {
+    background: var(--win-gray); width: 100%; max-width: 480px;
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker);
+    box-shadow: 0 -4px 0 black;
+    animation: windowPop 0.2s ease;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .ios-install-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .ios-step {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: white; padding: 8px;
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+  }
+  .ios-step-num {
+    background: var(--win-blue); color: white;
+    font-family: 'Press Start 2P', monospace; font-size: 9px;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ios-step-text { font-family: 'VT323', monospace; font-size: 18px; line-height: 1.4; }
+  .ios-step-text strong { font-family: 'Press Start 2P', monospace; font-size: 8px; display: block; margin-bottom: 2px; }
+  .ios-icon-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  .ios-icon-pill {
+    background: var(--win-gray); padding: 2px 8px; font-size: 16px;
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- iOS INSTALL BANNER -->
+<div class="install-banner" id="installBanner" onclick="showIOSInstall()">
+  <strong>📲 ADD TO HOME SCREEN</strong>
+  Tap here to install Pixel Garden on your iPhone for the full app experience!
+</div>
+
+<!-- iOS Install Instructions Modal -->
+<div class="ios-install-modal hidden" id="iosInstallModal">
+  <div class="ios-install-box">
+    <div class="title-bar">
+      <div class="title-bar-text">📲 Add to Home Screen</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeIOSInstall()">✕</div></div>
+    </div>
+    <div class="ios-install-body">
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;text-align:center;line-height:1.8;color:var(--win-blue);">Install Pixel Garden on your iPhone!</div>
+      <div class="ios-step">
+        <div class="ios-step-num">1</div>
+        <div class="ios-step-text">
+          <strong>TAP THE SHARE BUTTON</strong>
+          At the bottom of Safari, tap the Share icon — a box with an arrow pointing up ⬆️
+          <div class="ios-icon-row"><span class="ios-icon-pill">⬆️ Share</span></div>
+        </div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">2</div>
+        <div class="ios-step-text">
+          <strong>FIND "ADD TO HOME SCREEN"</strong>
+          Scroll down in the share sheet until you see it.
+          <div class="ios-icon-row"><span class="ios-icon-pill">➕ Add to Home Screen</span></div>
+        </div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">3</div>
+        <div class="ios-step-text">
+          <strong>NAME IT & TAP ADD</strong>
+          Call it "Pixel Garden" then tap <em>Add</em> in the top-right corner.
+          <div class="ios-icon-row"><span class="ios-icon-pill">✅ Add</span></div>
+        </div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">4</div>
+        <div class="ios-step-text">
+          <strong>OPEN FROM HOME SCREEN 🌱</strong>
+          The icon appears on your Home Screen. Open it from there — it runs like a real full-screen app with no browser chrome!
+        </div>
+      </div>
+      <div style="font-family:'VT323',monospace;font-size:15px;color:#555;text-align:center;line-height:1.5;padding:4px;">
+        💡 Your garden is saved on this device and works offline too!
+      </div>
+      <div style="display:flex;justify-content:center;padding-bottom:4px;">
+        <button class="action-btn primary" onclick="closeIOSInstall()">[ Got it! ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     WELCOME / SIGNUP MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay" id="welcomeOverlay">
+  <div class="modal-window">
+    <div class="title-bar">
+      <div class="title-bar-text">🌱 Welcome to Pixel Garden!</div>
+      <div class="title-bar-controls"><div class="win-btn">✕</div></div>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-welcome-art">🌱🌷🌵🍄🌿</div>
+      <div class="modal-tagline">
+        Grow your habits.<br>Grow your garden.
+      </div>
+
+      <hr class="modal-divider">
+
+      <div class="modal-form-row">
+        <label>YOUR NAME:</label>
+        <div class="modal-form-inline">
+          <input class="win-input" id="signupFirst" type="text" maxlength="20" placeholder="First name">
+          <input class="win-input" id="signupLast"  type="text" maxlength="30" placeholder="Last name">
+        </div>
+      </div>
+
+      <hr class="modal-divider">
+
+      <!-- NOTIFICATION SECTION -->
+      <div class="notif-section">
+        <label>🔔 DAILY GARDEN REMINDER</label>
+
+        <label class="win-checkbox-label" onclick="toggleNotifCheck()">
+          <div class="win-checkbox" id="notifCheckbox"></div>
+          Remind me every evening to check in
+        </label>
+
+        <div class="notif-time-row" id="notifTimeRow" style="display:none;">
+          <span>Remind me at:</span>
+          <input class="win-input" id="notifTime" type="time" value="20:00" style="width:100px;">
+        </div>
+
+        <div class="notif-status" id="notifStatus">
+          Browser notifications let you get reminders even when the tab is closed.
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="action-btn primary" onclick="submitSignup()">[ 🌱 START GROWING ]</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SETTINGS MODAL  (re-open to edit profile/notifs)
+════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="settingsOverlay">
+  <div class="modal-window">
+    <div class="title-bar">
+      <div class="title-bar-text">⚙️ Settings</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeSettings()">✕</div></div>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-form-row">
+        <label>YOUR NAME:</label>
+        <div class="modal-form-inline">
+          <input class="win-input" id="settingsFirst" type="text" maxlength="20" placeholder="First name">
+          <input class="win-input" id="settingsLast"  type="text" maxlength="30" placeholder="Last name">
+        </div>
+      </div>
+
+      <hr class="modal-divider">
+
+      <div class="notif-section">
+        <label>🔔 DAILY GARDEN REMINDER</label>
+        <label class="win-checkbox-label" onclick="toggleSettingsNotifCheck()">
+          <div class="win-checkbox" id="settingsNotifCheckbox"></div>
+          Remind me every evening to check in
+        </label>
+        <div class="notif-time-row" id="settingsNotifTimeRow" style="display:none;">
+          <span>Remind me at:</span>
+          <input class="win-input" id="settingsNotifTime" type="time" value="20:00" style="width:100px;">
+        </div>
+        <div class="notif-status" id="settingsNotifStatus"></div>
+      </div>
+
+      <div class="modal-btn-row" style="gap:8px; justify-content:center; display:flex;">
+        <button class="action-btn" onclick="closeSettings()">[ Cancel ]</button>
+        <button class="action-btn primary" onclick="saveSettings()">[ 💾 Save ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TOAST
+════════════════════════════════════════════ -->
+<div class="popup-toast" id="toast">
+  <div class="title-bar">
+    <div class="title-bar-text"><span>🌱</span><span>Pixel Garden</span></div>
+    <div class="title-bar-controls"><div class="win-btn">✕</div></div>
+  </div>
+  <div class="popup-toast-body" id="toast-msg"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DESKTOP
+════════════════════════════════════════════ -->
+<div class="desktop">
+  <div class="main-window window">
+    <div class="title-bar">
+      <div class="title-bar-text"><span>🌱</span><span id="mainTitle">Pixel Garden — Habit Tracker v4.0</span></div>
+      <div class="title-bar-controls">
+        <span class="settings-cog" title="Settings" onclick="openSettings()">⚙️</span>
+        <div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn">✕</div>
+      </div>
+    </div>
+
+    <div class="window-body">
+
+      <!-- GARDEN -->
+      <div class="garden-panel window">
+        <div class="title-bar"><div class="title-bar-text" id="gardenTitle">🏡 My Garden</div></div>
+        <div class="garden-canvas-wrapper" id="gardenWrapper">
+          <div class="pixel-sun" id="pixelSun"></div>
+          <div class="rain-overlay" id="rainOverlay"></div>
+          <div class="grass-strip"></div>
+          <div class="soil-strip"></div>
+          <div class="plants-row" id="plantsRow"></div>
+        </div>
+        <div class="xp-bar-row">
+          <span style="font-family:'Press Start 2P',monospace;font-size:7px;">XP:</span>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar-fill" id="xpBar" style="width:0%"></div>
+          </div>
+          <span style="font-family:'VT323',monospace;font-size:16px;" id="xpLabel">0/100 XP</span>
+        </div>
+      </div>
+
+      <!-- HABITS LIST -->
+      <div class="habits-panel window">
+        <div class="title-bar"><div class="title-bar-text">📋 Today's Habits</div></div>
+        <div class="panel-inner" id="habitList">
+          <div class="empty-state" id="emptyState">No habits yet!<br>Add one to start<br>growing your garden 🌱</div>
+        </div>
+        <div class="status-bar">
+          <div class="status-segment" id="doneCount">0/0 done</div>
+          <div class="status-segment" id="totalXPEl">⭐ 0 XP</div>
+          <div class="status-segment" id="fertCount">💚 Boosts: 0</div>
+        </div>
+      </div>
+
+      <!-- ADD HABIT FORM -->
+      <div class="add-panel window">
+        <div class="title-bar"><div class="title-bar-text">➕ Plant a New Habit</div></div>
+
+        <div class="form-row">
+          <label>HABIT NAME:</label>
+          <input class="win-input" id="habitName" type="text" maxlength="30" placeholder="e.g. Read 10 pages, Morning jog...">
+        </div>
+        <div class="form-row">
+          <label>PLANT TYPE:</label>
+          <select class="win-select" id="habitPlant">
+            <option value="flower">🌸 Flower</option>
+            <option value="tree">🌳 Tree</option>
+            <option value="cactus">🌵 Cactus</option>
+            <option value="mushroom">🍄 Mushroom</option>
+            <option value="fern">🌿 Fern</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>HOW OFTEN?</label>
+          <select class="win-select" id="freqType" onchange="onFreqChange()">
+            <option value="daily">📅 Daily</option>
+            <option value="weekly">📆 Weekly</option>
+            <option value="monthly">🗓️ Monthly</option>
+          </select>
+        </div>
+
+        <div class="freq-sub visible" id="subDaily">
+          <label>🎯 DAYS IN A ROW TO EARN FERTILIZER:</label>
+          <div class="sub-row">
+            <input class="win-input" id="dailyTarget" type="number" min="1" max="365" value="30">
+            <span style="font-family:'VT323',monospace;font-size:18px;">days in a row</span>
+          </div>
+          <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 5 days → plant dies</span>
+        </div>
+        <div class="freq-sub" id="subWeekly">
+          <label>🎯 TIMES PER WEEK TO EARN FERTILIZER:</label>
+          <div class="sub-row">
+            <input class="win-input" id="weeklyTarget" type="number" min="1" max="7" value="3">
+            <span style="font-family:'VT323',monospace;font-size:18px;">times / week</span>
+          </div>
+          <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 weeks → plant dies</span>
+        </div>
+        <div class="freq-sub" id="subMonthly">
+          <label>🎯 TIMES PER MONTH TO EARN FERTILIZER:</label>
+          <div class="sub-row">
+            <input class="win-input" id="monthlyTarget" type="number" min="1" max="31" value="12">
+            <span style="font-family:'VT323',monospace;font-size:18px;">times / month</span>
+          </div>
+          <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 months → plant dies</span>
+        </div>
+
+        <div style="padding:4px 8px 2px;font-family:'VT323',monospace;font-size:14px;color:#444;line-height:1.6;">
+          ⭐ +1 XP per check · 💚 +3 XP on goal · 🌧️ 100 XP = rain shower!
+        </div>
+        <div class="btn-row">
+          <button class="action-btn" onclick="addHabit()">[ 🌱 PLANT IT ]</button>
+        </div>
+      </div>
+
+    </div><!-- end window-body -->
+
+    <div class="status-bar">
+      <div class="status-segment" id="dateStatus">Loading...</div>
+      <div class="status-segment">Pixel Garden v4.0</div>
+      <div class="status-segment" id="notifBadge">🔔 No reminder set</div>
+    </div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <button class="start-btn">⊞ Start</button>
+  <div style="border-top:2px solid var(--win-darker);border-left:2px solid var(--win-darker);border-right:2px solid var(--win-white);border-bottom:2px solid var(--win-white);padding:4px 10px;font-family:'VT323',monospace;font-size:16px;background:rgba(0,0,0,0.1);">🌱 Pixel Garden</div>
+  <div class="taskbar-clock" id="clock">12:00</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let state = JSON.parse(localStorage.getItem('pixelGardenV4') || 'null') || {
+  user: null,          // { firstName, lastName, notifEnabled, notifTime }
+  totalXP: 0,
+  habits: []
+};
+let habits = state.habits;
+let totalXP = state.totalXP || 0;
+let user = state.user || null;
+
+function save() {
+  state = { user, totalXP, habits };
+  localStorage.setItem('pixelGardenV4', JSON.stringify(state));
+}
+
+// ═══════════════════════════════════════
+//  SIGNUP MODAL
+// ═══════════════════════════════════════
+let signupNotifEnabled = false;
+
+function toggleNotifCheck() {
+  signupNotifEnabled = !signupNotifEnabled;
+  document.getElementById('notifCheckbox').textContent = signupNotifEnabled ? '✓' : '';
+  document.getElementById('notifTimeRow').style.display = signupNotifEnabled ? 'flex' : 'none';
+  document.getElementById('notifStatus').textContent = signupNotifEnabled
+    ? 'Your browser will ask for notification permission.'
+    : 'Browser notifications let you get reminders even when the tab is closed.';
+  document.getElementById('notifStatus').className = 'notif-status';
+}
+
+async function submitSignup() {
+  const first = document.getElementById('signupFirst').value.trim();
+  const last  = document.getElementById('signupLast').value.trim();
+  if (!first) {
+    document.getElementById('signupFirst').focus();
+    document.getElementById('signupFirst').style.outline = '2px solid red';
+    return;
+  }
+  document.getElementById('signupFirst').style.outline = '';
+
+  const notifTime = signupNotifEnabled ? document.getElementById('notifTime').value : null;
+  let notifGranted = false;
+
+  if (signupNotifEnabled) {
+    notifGranted = await requestNotifPermission('notifStatus');
+  }
+
+  user = {
+    firstName: first,
+    lastName: last,
+    notifEnabled: notifGranted,
+    notifTime: notifGranted ? notifTime : null
+  };
+
+  save();
+  applyUserProfile();
+  document.getElementById('welcomeOverlay').classList.add('hidden');
+
+  if (notifGranted && notifTime) {
+    scheduleNotifCheck();
+    showToast(`🌱 Welcome, ${first}! Reminder set for ${fmtTime(notifTime)} every evening 🔔`);
+  } else {
+    showToast(`🌱 Welcome to your garden, ${first}! Time to grow! 🌿`);
+  }
+}
+
+function applyUserProfile() {
+  if (!user) return;
+  const name = user.firstName;
+  const possessive = name.endsWith('s') ? `${name}'` : `${name}'s`;
+  document.getElementById('gardenTitle').textContent = `🏡 ${possessive} Garden`;
+  document.getElementById('mainTitle').textContent = `Pixel Garden — ${possessive} Habit Tracker`;
+  document.title = `🌱 ${possessive} Pixel Garden`;
+  updateNotifBadge();
+}
+
+// ═══════════════════════════════════════
+//  SETTINGS MODAL
+// ═══════════════════════════════════════
+let settingsNotifEnabled = false;
+
+function openSettings() {
+  if (!user) return;
+  document.getElementById('settingsFirst').value = user.firstName || '';
+  document.getElementById('settingsLast').value  = user.lastName  || '';
+  settingsNotifEnabled = !!user.notifEnabled;
+  document.getElementById('settingsNotifCheckbox').textContent = settingsNotifEnabled ? '✓' : '';
+  document.getElementById('settingsNotifTimeRow').style.display = settingsNotifEnabled ? 'flex' : 'none';
+  document.getElementById('settingsNotifTime').value = user.notifTime || '20:00';
+  document.getElementById('settingsNotifStatus').textContent = settingsNotifEnabled
+    ? `Reminder active at ${fmtTime(user.notifTime)}`
+    : 'No reminder currently set.';
+  document.getElementById('settingsNotifStatus').className = 'notif-status' + (settingsNotifEnabled ? ' ok' : '');
+  document.getElementById('settingsOverlay').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.add('hidden');
+}
+
+function toggleSettingsNotifCheck() {
+  settingsNotifEnabled = !settingsNotifEnabled;
+  document.getElementById('settingsNotifCheckbox').textContent = settingsNotifEnabled ? '✓' : '';
+  document.getElementById('settingsNotifTimeRow').style.display = settingsNotifEnabled ? 'flex' : 'none';
+  document.getElementById('settingsNotifStatus').textContent = settingsNotifEnabled
+    ? 'Your browser will ask for notification permission.' : 'Reminders disabled.';
+  document.getElementById('settingsNotifStatus').className = 'notif-status';
+}
+
+async function saveSettings() {
+  const first = document.getElementById('settingsFirst').value.trim();
+  const last  = document.getElementById('settingsLast').value.trim();
+  if (!first) { document.getElementById('settingsFirst').focus(); return; }
+
+  const notifTime = document.getElementById('settingsNotifTime').value;
+  let notifGranted = user.notifEnabled || false;
+
+  if (settingsNotifEnabled && !user.notifEnabled) {
+    notifGranted = await requestNotifPermission('settingsNotifStatus');
+  } else if (!settingsNotifEnabled) {
+    notifGranted = false;
+  }
+
+  user = { ...user, firstName: first, lastName: last, notifEnabled: notifGranted, notifTime: notifGranted ? notifTime : null };
+  save();
+  applyUserProfile();
+  closeSettings();
+
+  if (notifGranted) scheduleNotifCheck();
+  showToast(`✅ Settings saved! Hello, ${first}! 👋`);
+}
+
+// ═══════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════
+async function requestNotifPermission(statusElId) {
+  const statusEl = document.getElementById(statusElId);
+  if (!('Notification' in window)) {
+    statusEl.textContent = '❌ Your browser does not support notifications.';
+    statusEl.className = 'notif-status err';
+    return false;
+  }
+  if (Notification.permission === 'granted') {
+    statusEl.textContent = '✅ Notifications already allowed!';
+    statusEl.className = 'notif-status ok';
+    return true;
+  }
+  if (Notification.permission === 'denied') {
+    statusEl.textContent = '❌ Notifications blocked. Please allow them in browser settings.';
+    statusEl.className = 'notif-status err';
+    return false;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    statusEl.textContent = '✅ Permission granted! Reminders are active.';
+    statusEl.className = 'notif-status ok';
+    return true;
+  } else {
+    statusEl.textContent = '❌ Permission denied. You can enable in browser settings later.';
+    statusEl.className = 'notif-status err';
+    return false;
+  }
+}
+
+function fmtTime(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+// Check every minute if it's time to fire a notification
+let notifCheckInterval = null;
+function scheduleNotifCheck() {
+  clearInterval(notifCheckInterval);
+  notifCheckInterval = setInterval(() => {
+    if (!user || !user.notifEnabled || !user.notifTime) return;
+    if (Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    const [targetH, targetM] = user.notifTime.split(':').map(Number);
+    if (now.getHours() === targetH && now.getMinutes() === targetM) {
+      // Don't fire more than once per day
+      const todayKey = now.toDateString();
+      if (user.lastNotifSent === todayKey) return;
+      user.lastNotifSent = todayKey;
+      save();
+      fireGardenNotification();
+    }
+  }, 30000); // check every 30s
+
+  // Also check immediately on page load in case they missed it
+  checkMissedNotif();
+}
+
+function checkMissedNotif() {
+  if (!user || !user.notifEnabled || !user.notifTime) return;
+  if (Notification.permission !== 'granted') return;
+  const now = new Date();
+  const [targetH, targetM] = user.notifTime.split(':').map(Number);
+  const todayKey = now.toDateString();
+  // Fire if within the same hour and not yet sent today
+  if (now.getHours() === targetH && user.lastNotifSent !== todayKey) {
+    user.lastNotifSent = todayKey;
+    save();
+    fireGardenNotification();
+  }
+}
+
+function fireGardenNotification() {
+  const name = user ? user.firstName : 'Gardener';
+  const undoneCt = habits.filter(h => !h.dead && !checkedThisPeriodToday(h)).length;
+  const body = undoneCt > 0
+    ? `You have ${undoneCt} habit${undoneCt > 1 ? 's' : ''} to check off today. Your plants are waiting! 🌱`
+    : `All habits done today! Come admire your beautiful garden 🌷`;
+
+  new Notification(`🌱 ${name}'s Garden — Daily Check-in!`, {
+    body,
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🌱</text></svg>',
+    tag: 'pixel-garden-reminder'
+  });
+}
+
+function updateNotifBadge() {
+  const el = document.getElementById('notifBadge');
+  if (user && user.notifEnabled && user.notifTime) {
+    el.textContent = `🔔 ${fmtTime(user.notifTime)} reminder`;
+  } else {
+    el.textContent = '🔔 No reminder';
+  }
+}
+
+// ═══════════════════════════════════════
+//  DATE HELPERS
+// ═══════════════════════════════════════
+function todayStr() { return new Date().toDateString(); }
+function weekStr(d) {
+  const dt = d || new Date();
+  const jan1 = new Date(dt.getFullYear(), 0, 1);
+  return dt.getFullYear() + '-W' + Math.ceil(((dt - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+}
+function monthStr(d) {
+  const dt = d || new Date();
+  return dt.getFullYear() + '-' + (dt.getMonth() + 1);
+}
+function daysSince(dateStr) {
+  if (!dateStr) return 999;
+  return Math.floor((new Date() - new Date(dateStr)) / 86400000);
+}
+
+// ═══════════════════════════════════════
+//  HEALTH / WILT
+// ═══════════════════════════════════════
+function computeHealth(h) {
+  if (h.dead) return 0;
+  const m = h.missedPeriods || 0;
+  if (h.freq === 'daily') {
+    if (m === 0) return 5; if (m === 1) return 4; if (m === 2) return 3; if (m === 3) return 2; if (m === 4) return 1; return 0;
+  }
+  if (h.freq === 'weekly')  { if (m === 0) return 5; if (m === 1) return 2; return 0; }
+  if (h.freq === 'monthly') { if (m === 0) return 5; if (m === 1) return 2; return 0; }
+  return 5;
+}
+function healthLabel(h) {
+  const v = computeHealth(h);
+  return ['💀 Dead','🍂 Dying','🥀 Wilting','😟 Sad','😐 Ok',''][5 - v] || '';
+}
+function healthClass(h) {
+  const v = computeHealth(h);
+  return ['dead-habit','wilting-4','wilting-3','wilting-2','wilting-1',''][5 - v] || '';
+}
+
+// ═══════════════════════════════════════
+//  GOAL HELPERS
+// ═══════════════════════════════════════
+function checkedThisPeriodToday(h) {
+  if (h.freq === 'daily')   return h.lastChecked === todayStr();
+  if (h.freq === 'weekly')  return h.lastChecked === todayStr() && h.lastCheckedWeek === weekStr();
+  if (h.freq === 'monthly') return h.lastChecked === todayStr() && h.lastCheckedMonth === monthStr();
+  return false;
+}
+function goalMet(h) {
+  if (h.freq === 'daily')   return (h.streak || 0) >= (h.dailyTarget || 30);
+  if (h.freq === 'weekly')  return ((h.weekChecks || {})[weekStr()] || 0) >= (h.weeklyTarget || 3);
+  if (h.freq === 'monthly') return ((h.monthChecks || {})[monthStr()] || 0) >= (h.monthlyTarget || 12);
+  return false;
+}
+function goalDesc(h) {
+  if (h.freq === 'daily')   return `${h.dailyTarget || 30}d streak`;
+  if (h.freq === 'weekly')  return `${h.weeklyTarget || 3}x/wk`;
+  if (h.freq === 'monthly') return `${h.monthlyTarget || 12}x/mo`;
+  return '';
+}
+function progressLabel(h) {
+  if (h.freq === 'daily')   return `${h.streak || 0}/${h.dailyTarget || 30}d`;
+  if (h.freq === 'weekly')  return `${(h.weekChecks||{})[weekStr()]||0}/${h.weeklyTarget||3}`;
+  if (h.freq === 'monthly') return `${(h.monthChecks||{})[monthStr()]||0}/${h.monthlyTarget||12}`;
+  return '';
+}
+
+// ═══════════════════════════════════════
+//  MISSED PERIOD CHECK
+// ═══════════════════════════════════════
+function runMissedChecks() {
+  habits.forEach(h => {
+    if (h.dead) return;
+    h.missedPeriods = h.missedPeriods || 0;
+    if (h.freq === 'daily') {
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+      if (h.lastChecked !== todayStr() && h.lastChecked !== yesterday.toDateString()) {
+        const days = daysSince(h.lastChecked);
+        h.missedPeriods = h.lastChecked ? Math.min(Math.max(h.missedPeriods, days - 1), 6) : h.missedPeriods;
+        if (h.missedPeriods >= 5) killPlant(h);
+        if (days > 1) h.streak = 0;
+      } else if (h.lastChecked === todayStr()) { h.missedPeriods = 0; }
+    }
+    if (h.freq === 'weekly') {
+      const tw = weekStr(); const lw = weekStr(new Date(Date.now() - 7*86400000));
+      if (h.lastCheckedWeek !== tw) {
+        const lastWeekDone = ((h.weekChecks||{})[lw]||0) >= (h.weeklyTarget||3);
+        if (!lastWeekDone) { h.missedPeriods++; if (h.missedPeriods >= 2) killPlant(h); }
+      } else if (goalMet(h)) h.missedPeriods = 0;
+    }
+    if (h.freq === 'monthly') {
+      const tm = monthStr(); const today = new Date();
+      const lm = monthStr(new Date(today.getFullYear(), today.getMonth()-1, 1));
+      if (h.lastCheckedMonth !== tm) {
+        const lastMonthDone = ((h.monthChecks||{})[lm]||0) >= (h.monthlyTarget||12);
+        if (!lastMonthDone) { h.missedPeriods++; if (h.missedPeriods >= 2) killPlant(h); }
+      } else if (goalMet(h)) h.missedPeriods = 0;
+    }
+  });
+  save();
+}
+function killPlant(h) { if (!h.dead) { h.dead = true; h.fertilized = false; h.missedPeriods = 5; } }
+function replantHabit(id) {
+  const h = habits.find(x => x.id === id);
+  if (!h) return;
+  Object.assign(h, { dead:false, missedPeriods:0, totalChecks:0, streak:0, fertilized:false, lastChecked:null, lastCheckedWeek:null, lastCheckedMonth:null, weekChecks:{}, monthChecks:{} });
+  save(); renderHabits(); renderGarden();
+  showToast(`🌱 "${h.name}" replanted! Fresh start — don't let it die! 💪`);
+}
+
+// ═══════════════════════════════════════
+//  XP SYSTEM
+// ═══════════════════════════════════════
+function awardXP(amount, cx, cy, type) {
+  const old = totalXP; totalXP += amount; save();
+  spawnFloat(amount === 1 ? '+1 XP ⭐' : `+${amount} XP 💚`, cx, cy, type);
+  updateXPBar();
+  if (Math.floor(old / 100) < Math.floor(totalXP / 100)) setTimeout(triggerRainShower, 400);
+}
+function updateXPBar() {
+  const pct = totalXP % 100;
+  document.getElementById('xpBar').style.width = pct + '%';
+  const hasFert = habits.some(h => h.fertilized && !h.dead);
+  document.getElementById('xpBar').className = 'progress-bar-fill' + (hasFert ? ' fert' : '');
+  document.getElementById('xpLabel').textContent = `${pct}/100 XP`;
+  document.getElementById('totalXPEl').textContent = `⭐ ${totalXP} XP`;
+}
+
+// ═══════════════════════════════════════
+//  RAIN SHOWER
+// ═══════════════════════════════════════
+let rainTimeout = null;
+function triggerRainShower() {
+  const wrapper = document.getElementById('gardenWrapper');
+  const overlay = document.getElementById('rainOverlay');
+  const sun = document.getElementById('pixelSun');
+  overlay.innerHTML = '';
+  for (let i = 0; i < 40; i++) {
+    const d = document.createElement('div');
+    d.className = 'raindrop';
+    Object.assign(d.style, { left: (Math.random()*100)+'%', height: (8+Math.random()*16)+'px', animationDuration: (0.4+Math.random()*0.5)+'s', animationDelay: (Math.random()*0.8)+'s', opacity: (0.5+Math.random()*0.5).toString() });
+    overlay.appendChild(d);
+  }
+  wrapper.classList.add('raining'); overlay.classList.add('active'); sun.classList.add('rainy');
+  document.getElementById('xpBar').className = 'progress-bar-fill rain';
+  const name = user ? user.firstName + "'s" : 'your';
+  showToast(`🌧️ RAIN SHOWER! All of ${name} plants get a growth boost!`);
+  spawnFloat('🌧️ RAIN!', window.innerWidth/2, 200, 'rain');
+  habits.forEach(h => { if (!h.dead) { h.totalChecks = (h.totalChecks||0)+2; h.missedPeriods = Math.max(0,(h.missedPeriods||0)-1); } });
+  save(); renderGarden();
+  clearTimeout(rainTimeout);
+  rainTimeout = setTimeout(() => {
+    wrapper.classList.remove('raining'); overlay.classList.remove('active'); sun.classList.remove('rainy');
+    const hasFert = habits.some(h => h.fertilized && !h.dead);
+    document.getElementById('xpBar').className = 'progress-bar-fill' + (hasFert ? ' fert' : '');
+  }, 5000);
+}
+
+// ═══════════════════════════════════════
+//  PIXEL PLANT DRAWING
+// ═══════════════════════════════════════
+const PLANT_COLORS = {
+  flower:   { stem:'#228B22', leaf:'#32CD32', bloom:'#FF69B4', center:'#FFD700', dark:'#006400' },
+  tree:     { stem:'#8B4513', leaf:'#228B22', bloom:'#228B22', center:'#32CD32', dark:'#006400' },
+  cactus:   { stem:'#3CB371', leaf:'#2E8B57', bloom:'#FF6347', center:'#FFD700', dark:'#006400' },
+  mushroom: { stem:'#DEB887', leaf:'#DC143C', bloom:'#FF6347', center:'#FFFACD', dark:'#8B0000' },
+  fern:     { stem:'#228B22', leaf:'#7CFC00', bloom:'#90EE90', center:'#32CD32', dark:'#006400' },
+};
+const WILT_PALETTES = [
+  null,
+  { stem:'#8B6914', leaf:'#A0522D', bloom:'#C8960C', center:'#8B4513', dark:'#5C3317' },
+  { stem:'#7a5a10', leaf:'#8B4513', bloom:'#996600', center:'#7a4010', dark:'#4a2810' },
+  { stem:'#6b4a0a', leaf:'#7a3a0a', bloom:'#7a5000', center:'#6b3000', dark:'#3a1800' },
+  { stem:'#5a3a08', leaf:'#6b3010', bloom:'#5a4000', center:'#5a2800', dark:'#2a1000' },
+];
+
+function drawPlant(canvas, type, stage, fertilized, health) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
+  const w = canvas.width, h = canvas.height;
+
+  if (health === 0) {
+    const px = Math.max(2, Math.floor(w/16));
+    const rows = Math.floor(h/px), midX = Math.floor(w/px/2);
+    ctx.fillStyle='#5C3317'; ctx.fillRect(midX*px,(rows-4)*px,px,4*px);
+    ctx.fillStyle='#4a2810'; ctx.fillRect((midX-1)*px,(rows-3)*px,px,px); ctx.fillRect((midX+1)*px,(rows-2)*px,px,px);
+    return;
+  }
+
+  let c = { ...(PLANT_COLORS[type] || PLANT_COLORS.flower) };
+  if (fertilized && health === 5) { c.bloom='#FFD700'; c.center='#FFFFFF'; c.leaf='#ADFF2F'; }
+  else if (health < 5) { const wp = WILT_PALETTES[5-health] || WILT_PALETTES[4]; c = { ...wp }; }
+
+  const px = Math.max(2, Math.floor(w/16));
+  const R = (col,row,ww,hh,color) => { ctx.fillStyle=color; ctx.fillRect(col*px,row*px,ww*px,hh*px); };
+  const rows = Math.floor(h/px), cols = Math.floor(w/px);
+  const midX = Math.floor(cols/2), baseY = rows-1;
+  const droop = health < 5 ? (5-health)*0.5 : 0;
+
+  if (stage===0) { R(midX-1,baseY,2,1,health<5?'#5C3317':'#8B4513'); R(midX,baseY-1,1,1,health<5?'#4a2810':'#A0522D'); return; }
+  if (stage===1) { R(midX,baseY,1,2,c.stem); R(midX-1,baseY-2+Math.round(droop),1,1,c.leaf); R(midX+1,baseY-2+Math.round(droop),1,1,c.leaf); R(midX,baseY-3,1,1,c.leaf); return; }
+  if (stage===2) {
+    const sH=Math.floor(rows*0.35); R(midX,baseY-sH,1,sH+1,c.stem);
+    R(midX-2,baseY-sH+1+Math.round(droop),2,1,c.leaf); R(midX+1,baseY-sH+3+Math.round(droop),2,1,c.leaf);
+    R(midX-1,baseY-sH-1+Math.round(droop),3,2,c.bloom); R(midX,baseY-sH-2,1,1,c.center); return;
+  }
+  if (stage===3) {
+    if (type==='tree') { const sH=Math.floor(rows*0.45); R(midX,baseY-sH,2,sH+1,c.stem); R(midX-3,baseY-sH-3+Math.round(droop),8,5,c.leaf); R(midX-2,baseY-sH-5+Math.round(droop),6,3,c.bloom); R(midX-1,baseY-sH-6,4,2,c.center); }
+    else if (type==='cactus') { const sH=Math.floor(rows*0.5); R(midX,baseY-sH,2,sH+1,c.stem); R(midX-3,baseY-sH+2,3,2,c.leaf); R(midX-3,baseY-sH,1,3,c.leaf); R(midX+2,baseY-sH+4,3,2,c.leaf); R(midX+4,baseY-sH+2,1,3,c.leaf); R(midX,baseY-sH-1,2,2,c.bloom); }
+    else if (type==='mushroom') { R(midX-1,baseY-4,3,5,c.stem); R(midX-4,baseY-8+Math.round(droop),9,5,c.leaf); R(midX-3,baseY-10+Math.round(droop),7,3,c.bloom); R(midX-2,baseY-11,5,2,c.dark); ctx.fillStyle=c.center; [[midX-2,baseY-9],[midX+1,baseY-8]].forEach(([x,y])=>ctx.fillRect(x*px,(y+Math.round(droop))*px,px,px)); }
+    else { const sH=Math.floor(rows*0.4); R(midX,baseY-sH,1,sH+1,c.stem); R(midX-2,baseY-sH+2+Math.round(droop),2,1,c.leaf); R(midX+1,baseY-sH+4+Math.round(droop),2,1,c.leaf); R(midX-2,baseY-sH-2+Math.round(droop),2,2,c.bloom); R(midX+1,baseY-sH-2+Math.round(droop),2,2,c.bloom); R(midX-1,baseY-sH-3,3,2,c.bloom); R(midX,baseY-sH-3,1,2,c.center); }
+    return;
+  }
+  // stage 4
+  if (type==='tree') {
+    const sH=Math.floor(rows*0.45); R(midX,baseY-sH,2,sH+1,c.stem); R(midX-1,baseY-sH+2,1,2,c.dark);
+    R(midX-4,baseY-sH-2+Math.round(droop),10,6,c.leaf); R(midX-5,baseY-sH-4+Math.round(droop),12,4,c.bloom); R(midX-4,baseY-sH-7+Math.round(droop),10,4,c.leaf); R(midX-3,baseY-sH-9+Math.round(droop),8,3,c.bloom); R(midX-2,baseY-sH-11,6,3,c.dark); R(midX-1,baseY-sH-13,4,3,c.leaf);
+    ctx.fillStyle=fertilized&&health===5?'#FFD700':(health<5?c.leaf:'#FF4444');
+    [[midX-3,baseY-sH-3+Math.round(droop)],[midX+3,baseY-sH-5+Math.round(droop)],[midX,baseY-sH-8]].forEach(([x,y])=>ctx.fillRect(x*px,y*px,px,px));
+  } else if (type==='cactus') {
+    const sH=Math.floor(rows*0.6); R(midX,baseY-sH,2,sH+1,c.stem); R(midX-4,baseY-sH+2,4,2,c.leaf); R(midX-4,baseY-sH,1,4,c.leaf); R(midX+2,baseY-sH+5,4,2,c.leaf); R(midX+5,baseY-sH+3,1,4,c.leaf); R(midX-1,baseY-sH-3,4,3,c.bloom); R(midX,baseY-sH-4,2,2,c.center);
+    if (health===5) { ctx.fillStyle='#FFFACD'; for(let i=0;i<sH;i+=2){ctx.fillRect((midX-1)*px,(baseY-i)*px,px/2,px/2);ctx.fillRect((midX+2)*px,(baseY-i-1)*px,px/2,px/2);} }
+  } else if (type==='mushroom') {
+    R(midX-1,baseY-5,3,6,c.stem); R(midX,baseY-6,1,2,c.stem); R(midX-5,baseY-10+Math.round(droop),11,6,c.leaf); R(midX-6,baseY-13+Math.round(droop),13,4,c.bloom); R(midX-5,baseY-15,11,3,c.dark); R(midX-3,baseY-17,7,3,c.bloom); R(midX-2,baseY-18,5,2,c.dark);
+    ctx.fillStyle=c.center; [[midX-3,baseY-11+Math.round(droop)],[midX,baseY-12+Math.round(droop)],[midX+3,baseY-11+Math.round(droop)],[midX-1,baseY-14],[midX+2,baseY-13]].forEach(([x,y])=>ctx.fillRect(x*px,y*px,px,px));
+  } else {
+    const sH=Math.floor(rows*0.45); R(midX,baseY-sH,1,sH+1,c.stem);
+    R(midX-3,baseY-sH+3+Math.round(droop),3,1,c.leaf); R(midX+1,baseY-sH+6+Math.round(droop),3,1,c.leaf);
+    R(midX-3,baseY-sH-3+Math.round(droop),3,3,c.bloom); R(midX+1,baseY-sH-3+Math.round(droop),3,3,c.bloom); R(midX-1,baseY-sH-5+Math.round(droop),3,3,c.bloom); R(midX-3,baseY-sH+Math.round(droop),3,3,c.bloom); R(midX+1,baseY-sH+Math.round(droop),3,3,c.bloom); R(midX-1,baseY-sH-2,3,3,c.center); R(midX-2,baseY-sH-7,5,3,c.bloom); R(midX-1,baseY-sH-6,3,2,c.center);
+  }
+  if (fertilized && health===5 && stage>=3) {
+    ctx.fillStyle='#FFD700'; [[1,2],[cols-3,3],[midX+4,1],[2,rows-8]].forEach(([x,y])=>ctx.fillRect(x*px,y*px,px,px));
+    ctx.fillStyle='#FFFFFF'; [[2,1],[cols-2,5]].forEach(([x,y])=>ctx.fillRect(x*px,y*px,Math.ceil(px/2),Math.ceil(px/2)));
+  }
+}
+
+// ═══════════════════════════════════════
+//  STAGE CALC
+// ═══════════════════════════════════════
+function getStage(h) {
+  if (h.dead) return 0;
+  const t = h.fertilized ? (h.totalChecks||0)*1.6 : (h.totalChecks||0);
+  if (t===0) return 0; if (t<3) return 1; if (t<8) return 2; if (t<15) return 3; return 4;
+}
+const STAGE_NAMES = ['Seed 🌰','Sprout 🌱','Seedling 🌿','Growing 🌳','Blooming 🌸'];
+const CANVAS_W=64, CANVAS_H=80;
+
+// ═══════════════════════════════════════
+//  RENDER GARDEN
+// ═══════════════════════════════════════
+function renderGarden() {
+  const row = document.getElementById('plantsRow');
+  row.innerHTML = '';
+  const active = habits.filter(h => !h.hidden);
+  if (active.length===0) { row.innerHTML='<div style="color:#000080;font-family:VT323,monospace;font-size:16px;text-align:center;width:100%;padding-bottom:50px;">Add habits to grow your garden! 🌱</div>'; }
+  active.slice(0,8).forEach(h => {
+    const health=computeHealth(h), stage=getStage(h), fert=!!h.fertilized&&!h.dead;
+    const slot=document.createElement('div');
+    slot.className='plant-slot'+(fert?' fertilized':'')+(h.dead?' dead':'');
+    const canvas=document.createElement('canvas');
+    canvas.className='plant-canvas'; canvas.width=CANVAS_W; canvas.height=CANVAS_H;
+    canvas.style.width=CANVAS_W+'px'; canvas.style.height=CANVAS_H+'px';
+    drawPlant(canvas,h.plantType,stage,fert,health);
+    const label=document.createElement('div');
+    label.className='plant-label';
+    label.textContent=(h.name.length>10?h.name.slice(0,10)+'…':h.name)+(h.dead?' 💀':'');
+    if(fert){const b=document.createElement('div');b.className='fert-badge';b.textContent='💚';slot.appendChild(b);}
+    if(h.dead){const s=document.createElement('div');s.className='skull-badge';s.textContent='💀';slot.appendChild(s);}
+    slot.appendChild(canvas); slot.appendChild(label); row.appendChild(slot);
+  });
+  updateXPBar();
+}
+
+// ═══════════════════════════════════════
+//  RENDER HABIT LIST
+// ═══════════════════════════════════════
+function renderHabits() {
+  const list=document.getElementById('habitList');
+  const active=habits.filter(h=>!h.hidden);
+  if(active.length===0){list.innerHTML='';list.appendChild(document.getElementById('emptyState'));document.getElementById('doneCount').textContent='0/0 done';document.getElementById('fertCount').textContent='💚 Boosts: 0';return;}
+  list.innerHTML=''; let doneToday=0;
+  active.forEach(h=>{
+    const isDone=checkedThisPeriodToday(h);
+    if(isDone)doneToday++;
+    const met=goalMet(h), health=computeHealth(h);
+    const row=document.createElement('div');
+    row.className=['habit-row',isDone&&!h.dead?'habit-done':'',h.fertilized&&!h.dead?'habit-fertilized':'',healthClass(h)].filter(Boolean).join(' ');
+    const check=document.createElement('div');check.className='habit-check';check.textContent=isDone&&!h.dead?'✓':(h.dead?'✕':'');
+    const name=document.createElement('div');name.className='habit-name';name.textContent=h.name;
+    const tag=document.createElement('div');tag.className='habit-goal-tag';tag.textContent=goalDesc(h);
+    const prog=document.createElement('div');prog.className='habit-progress-mini'+(met?' goal-met':'');prog.textContent=h.dead?'💀 dead':(h.fertilized?'💚 ':'')+progressLabel(h);
+    const healthEl=document.createElement('div');healthEl.className='habit-health';healthEl.textContent=healthLabel(h);
+    const icon=document.createElement('div');icon.className='habit-plant-icon';icon.textContent={flower:'🌸',tree:'🌳',cactus:'🌵',mushroom:'🍄',fern:'🌿'}[h.plantType]||'🌱';
+    if(h.dead){
+      const rb=document.createElement('button');rb.className='replant-btn';rb.textContent='🌱 REPLANT';rb.onclick=e=>{e.stopPropagation();replantHabit(h.id);};
+      row.append(check,name,tag,prog,healthEl,icon,rb);
+    } else {
+      const del=document.createElement('span');del.className='delete-btn';del.textContent='✕';del.title='Remove habit';del.onclick=e=>{e.stopPropagation();deleteHabit(h.id);};
+      row.append(check,name,tag,prog,healthEl,icon,del);
+      row.onclick=()=>toggleHabit(h.id,row);
+    }
+    list.appendChild(row);
+  });
+  document.getElementById('doneCount').textContent=`${doneToday}/${active.filter(h=>!h.dead).length} done`;
+  document.getElementById('fertCount').textContent=`💚 Boosts: ${habits.filter(h=>h.fertilized&&!h.dead).length}`;
+}
+
+// ═══════════════════════════════════════
+//  TOGGLE HABIT
+// ═══════════════════════════════════════
+function toggleHabit(id, rowEl) {
+  const h=habits.find(x=>x.id===id);
+  if(!h||h.dead)return;
+  const wasAlreadyDone=checkedThisPeriodToday(h);
+  const er=rowEl.getBoundingClientRect(), cx=er.left+er.width/2, cy=er.top;
+
+  if(wasAlreadyDone){
+    h.lastChecked=null; h.totalChecks=Math.max(0,(h.totalChecks||0)-1); totalXP=Math.max(0,totalXP-1);
+    if(h.freq==='daily'){h.streak=Math.max(0,(h.streak||0)-1);}
+    else if(h.freq==='weekly'){h.lastCheckedWeek=null;h.weekChecks=h.weekChecks||{};h.weekChecks[weekStr()]=Math.max(0,(h.weekChecks[weekStr()]||0)-1);}
+    else if(h.freq==='monthly'){h.lastCheckedMonth=null;h.monthChecks=h.monthChecks||{};h.monthChecks[monthStr()]=Math.max(0,(h.monthChecks[monthStr()]||0)-1);}
+    save();renderHabits();renderGarden();return;
+  }
+
+  const oldGoalMet=goalMet(h), oldStage=getStage({...h});
+  h.lastChecked=todayStr(); h.totalChecks=(h.totalChecks||0)+1; h.missedPeriods=0;
+  if(h.freq==='daily'){h.streak=(h.streak||0)+1;}
+  else if(h.freq==='weekly'){h.lastCheckedWeek=weekStr();h.weekChecks=h.weekChecks||{};h.weekChecks[weekStr()]=(h.weekChecks[weekStr()]||0)+1;}
+  else if(h.freq==='monthly'){h.lastCheckedMonth=monthStr();h.monthChecks=h.monthChecks||{};h.monthChecks[monthStr()]=(h.monthChecks[monthStr()]||0)+1;}
+
+  const nowGoalMet=goalMet(h), newStage=getStage(h);
+  if(!oldGoalMet&&nowGoalMet){
+    h.fertilized=true;
+    awardXP(3,cx,cy,'fert');
+    setTimeout(()=>{showSplash('💚');showToast(`💚 GOAL SMASHED! "${h.name}" earned a FERTILIZER BOOST! +3 XP 🌿✨`);},150);
+  } else {
+    awardXP(1,cx,cy,false);
+    if(newStage>oldStage)showToast(`✨ "${h.name}" leveled up to ${STAGE_NAMES[newStage]}! +1 XP`);
+    else showToast(`✅ Logged! ${progressLabel(h)} → ${goalDesc(h)} +1 XP ⭐`);
+  }
+  save();renderHabits();renderGarden();
+}
+
+// ═══════════════════════════════════════
+//  ADD / DELETE HABIT
+// ═══════════════════════════════════════
+function addHabit() {
+  const name=document.getElementById('habitName').value.trim();
+  const plantType=document.getElementById('habitPlant').value;
+  const freq=document.getElementById('freqType').value;
+  if(!name){document.getElementById('habitName').focus();return;}
+  const h={id:Date.now(),name,plantType,freq,lastChecked:null,totalChecks:0,streak:0,fertilized:false,dead:false,missedPeriods:0,createdAt:new Date().toISOString()};
+  if(freq==='daily')  h.dailyTarget  =Math.max(1,parseInt(document.getElementById('dailyTarget').value)||30);
+  if(freq==='weekly') {h.weeklyTarget =Math.max(1,parseInt(document.getElementById('weeklyTarget').value)||3); h.weekChecks={};}
+  if(freq==='monthly'){h.monthlyTarget=Math.max(1,parseInt(document.getElementById('monthlyTarget').value)||12);h.monthChecks={};}
+  habits.push(h);
+  document.getElementById('habitName').value='';
+  save();renderHabits();renderGarden();
+  showToast(`🌱 Planted "${name}"! Goal: ${goalDesc(h)} → earn 💚 fertilizer!`);
+}
+function deleteHabit(id) { habits=habits.filter(h=>h.id!==id);state.habits=habits;save();renderHabits();renderGarden(); }
+function onFreqChange() {
+  const v=document.getElementById('freqType').value;
+  ['Daily','Weekly','Monthly'].forEach(s=>document.getElementById('sub'+s).classList.toggle('visible',v===s.toLowerCase()));
+}
+
+// ═══════════════════════════════════════
+//  TOAST / SPLASH / FLOAT
+// ═══════════════════════════════════════
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);}
+function showSplash(emoji){const el=document.createElement('div');el.className='splash-overlay';el.textContent=emoji;document.body.appendChild(el);setTimeout(()=>el.remove(),1800);}
+function spawnFloat(text,x,y,type){const el=document.createElement('div');el.className='float-text'+(type==='fert'?' fert-text':type==='rain'?' rain-text':'');el.textContent=text;el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1300);}
+
+// ═══════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('dateStatus').textContent=`${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+}
+setInterval(updateClock,1000); updateClock();
+
+// ═══════════════════════════════════════
+//  ENTER KEY
+// ═══════════════════════════════════════
+document.getElementById('habitName').addEventListener('keydown',e=>{if(e.key==='Enter')addHabit();});
+document.getElementById('signupFirst').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('signupLast').focus();});
+document.getElementById('signupLast').addEventListener('keydown',e=>{if(e.key==='Enter')submitSignup();});
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+if (user) {
+  // Returning user — skip signup modal
+  document.getElementById('welcomeOverlay').classList.add('hidden');
+  applyUserProfile();
+  if (user.notifEnabled && user.notifTime) scheduleNotifCheck();
+}
+
+runMissedChecks();
+renderHabits();
+renderGarden();
+
+// ═══════════════════════════════════════
+//  iOS / MOBILE DETECTION & INSTALL BANNER
+// ═══════════════════════════════════════
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function isInStandaloneMode() {
+  return ('standalone' in window.navigator) && window.navigator.standalone;
+}
+function isSafari() {
+  return /safari/i.test(navigator.userAgent) && !/chrome|chromium|crios/i.test(navigator.userAgent);
+}
+
+// Show install banner on iOS Safari when NOT already installed
+if (isIOS() && isSafari() && !isInStandaloneMode()) {
+  const banner = document.getElementById('installBanner');
+  // Only show if they haven't dismissed it this session
+  if (!sessionStorage.getItem('installBannerDismissed')) {
+    banner.classList.add('visible');
+  }
+}
+
+function showIOSInstall() {
+  document.getElementById('iosInstallModal').classList.remove('hidden');
+}
+function closeIOSInstall() {
+  document.getElementById('iosInstallModal').classList.add('hidden');
+  document.getElementById('installBanner').classList.remove('visible');
+  sessionStorage.setItem('installBannerDismissed', '1');
+}
+
+// On standalone (installed PWA), hide the taskbar start button text to save space
+if (isInStandaloneMode()) {
+  document.querySelector('.start-btn').textContent = '⊞';
+}
+
+// Fix mobile scroll — prevent body scroll bounce interfering with panel scroll
+document.querySelectorAll('.panel-inner').forEach(el => {
+  el.addEventListener('touchstart', e => { if (el.scrollTop === 0) el.scrollTop = 1; }, { passive: true });
+});
+</script>
+</body>
+</html>
