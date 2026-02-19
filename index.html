@@ -423,114 +423,148 @@
   }
 
   /* ── iPhone install banner ── */
-  .install-banner {
-    display: none;
-    background: var(--win-blue);
-    color: white;
-    font-family: 'VT323', monospace;
-    font-size: 16px;
-    padding: 8px 12px;
-    text-align: center;
-    line-height: 1.5;
-    cursor: pointer;
-  }
-  .install-banner strong { font-family: 'Press Start 2P', monospace; font-size: 8px; display: block; margin-bottom: 4px; }
-  .install-banner.visible { display: block; }
+  .install-banner { display: none; }
 
-  /* iOS install instructions modal */
-  .ios-install-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 2000;
+  /* ── iOS FULLSCREEN GATE ── */
+  .ios-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #008080;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
+    overflow-y: auto;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 24px 12px calc(24px + env(safe-area-inset-bottom));
   }
-  .ios-install-modal.hidden { display: none; }
-  .ios-install-box {
-    background: var(--win-gray); width: 100%; max-width: 480px;
+  .ios-gate.hidden { display: none; }
+
+  .ios-gate-inner {
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+
+  .ios-gate-art {
+    font-size: 64px;
+    animation: bounce 1.2s ease infinite alternate;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  .ios-gate-title {
+    font-family: 'Press Start 2P', monospace; font-size: 14px;
+    color: white; text-shadow: 2px 2px 0 black; text-align: center;
+  }
+  .ios-gate-sub {
+    font-family: 'VT323', monospace; font-size: 20px;
+    color: #c8ffee; text-align: center; opacity: 0.9;
+  }
+
+  .ios-gate-card {
+    width: 100%;
+    background: var(--win-gray);
     border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
-    border-right: 2px solid var(--win-darker);
-    box-shadow: 0 -4px 0 black;
-    animation: windowPop 0.2s ease;
-    max-height: 85vh; overflow-y: auto;
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    box-shadow: 3px 3px 0 black;
+    padding: 12px 14px;
+    text-align: center;
   }
-  .ios-install-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .ios-gate-card-title {
+    font-family: 'Press Start 2P', monospace; font-size: 8px;
+    color: var(--win-blue); margin-bottom: 8px; line-height: 1.8;
+  }
+  .ios-gate-card p {
+    font-family: 'VT323', monospace; font-size: 18px; line-height: 1.5; color: #222;
+  }
+
+  .ios-steps-list {
+    width: 100%; display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .ios-gate-hint {
+    font-family: 'VT323', monospace; font-size: 15px;
+    color: #c8ffee; text-align: center; opacity: 0.75; line-height: 1.5;
+  }
+
+  /* iOS install instructions (now inside gate, reuse .ios-step styles) */
+  .ios-install-modal { display: none; } /* no longer used */
+
   .ios-step {
     display: flex; align-items: flex-start; gap: 10px;
-    background: white; padding: 8px;
-    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
+    background: var(--win-gray); padding: 10px;
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    box-shadow: 2px 2px 0 black;
   }
   .ios-step-num {
     background: var(--win-blue); color: white;
     font-family: 'Press Start 2P', monospace; font-size: 9px;
-    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .ios-step-text { font-family: 'VT323', monospace; font-size: 18px; line-height: 1.4; }
-  .ios-step-text strong { font-family: 'Press Start 2P', monospace; font-size: 8px; display: block; margin-bottom: 2px; }
-  .ios-icon-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  .ios-step-text { font-family: 'VT323', monospace; font-size: 18px; line-height: 1.5; color: #111; }
+  .ios-step-text strong { font-family: 'Press Start 2P', monospace; font-size: 7px; display: block; margin-bottom: 4px; color: var(--win-blue); }
+  .ios-icon-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
   .ios-icon-pill {
-    background: var(--win-gray); padding: 2px 8px; font-size: 16px;
+    background: white; padding: 3px 10px; font-size: 16px;
     border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
     border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
-    white-space: nowrap;
+    white-space: nowrap; font-family: 'VT323', monospace;
   }
 </style>
 </head>
 <body>
 
-<!-- iOS INSTALL BANNER -->
-<div class="install-banner" id="installBanner" onclick="showIOSInstall()">
-  <strong>📲 ADD TO HOME SCREEN</strong>
-  Tap here to install Pixel Garden on your iPhone for the full app experience!
-</div>
+<!-- ═══════════════════════════════════════════
+     iOS INSTALL GATE — fullscreen block shown only on iPhone Safari (non-standalone)
+════════════════════════════════════════════ -->
+<div class="ios-gate hidden" id="iosGate">
+  <div class="ios-gate-inner">
 
-<!-- iOS Install Instructions Modal -->
-<div class="ios-install-modal hidden" id="iosInstallModal">
-  <div class="ios-install-box">
-    <div class="title-bar">
-      <div class="title-bar-text">📲 Add to Home Screen</div>
-      <div class="title-bar-controls"><div class="win-btn" onclick="closeIOSInstall()">✕</div></div>
+    <div class="ios-gate-art">🌱</div>
+    <div class="ios-gate-title">Pixel Garden</div>
+    <div class="ios-gate-sub">Grow your habits. Grow your garden.</div>
+
+    <div class="ios-gate-card">
+      <div class="ios-gate-card-title">📲 INSTALL TO GET STARTED</div>
+      <p>Pixel Garden works best as an app on your Home Screen. Please install it first — it only takes 30 seconds!</p>
     </div>
-    <div class="ios-install-body">
-      <div style="font-family:'Press Start 2P',monospace;font-size:8px;text-align:center;line-height:1.8;color:var(--win-blue);">Install Pixel Garden on your iPhone!</div>
+
+    <div class="ios-steps-list">
       <div class="ios-step">
         <div class="ios-step-num">1</div>
         <div class="ios-step-text">
           <strong>TAP THE SHARE BUTTON</strong>
-          At the bottom of Safari, tap the Share icon — a box with an arrow pointing up ⬆️
+          At the bottom of your Safari browser, tap the share icon — it looks like a box with an arrow pointing up.
           <div class="ios-icon-row"><span class="ios-icon-pill">⬆️ Share</span></div>
         </div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">2</div>
         <div class="ios-step-text">
-          <strong>FIND "ADD TO HOME SCREEN"</strong>
-          Scroll down in the share sheet until you see it.
+          <strong>TAP "ADD TO HOME SCREEN"</strong>
+          Scroll down in the menu until you find it.
           <div class="ios-icon-row"><span class="ios-icon-pill">➕ Add to Home Screen</span></div>
         </div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">3</div>
         <div class="ios-step-text">
-          <strong>NAME IT & TAP ADD</strong>
-          Call it "Pixel Garden" then tap <em>Add</em> in the top-right corner.
+          <strong>TAP ADD</strong>
+          Confirm by tapping <em>Add</em> in the top-right corner.
           <div class="ios-icon-row"><span class="ios-icon-pill">✅ Add</span></div>
         </div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">4</div>
         <div class="ios-step-text">
-          <strong>OPEN FROM HOME SCREEN 🌱</strong>
-          The icon appears on your Home Screen. Open it from there — it runs like a real full-screen app with no browser chrome!
+          <strong>OPEN FROM YOUR HOME SCREEN 🌱</strong>
+          Find the Pixel Garden icon on your Home Screen and tap it to open the app and get started!
         </div>
       </div>
-      <div style="font-family:'VT323',monospace;font-size:15px;color:#555;text-align:center;line-height:1.5;padding:4px;">
-        💡 Your garden is saved on this device and works offline too!
-      </div>
-      <div style="display:flex;justify-content:center;padding-bottom:4px;">
-        <button class="action-btn primary" onclick="closeIOSInstall()">[ Got it! ]</button>
-      </div>
     </div>
+
+    <div class="ios-gate-hint">
+      Your garden data is saved privately on your device and works offline.
+    </div>
+
   </div>
 </div>
 
@@ -1005,15 +1039,28 @@ function updateNotifBadge() {
 //  DATE HELPERS
 // ═══════════════════════════════════════
 function todayStr() { return new Date().toDateString(); }
+
+// Week = Monday→Sunday. Returns e.g. "2026-W07"
 function weekStr(d) {
-  const dt = d || new Date();
-  const jan1 = new Date(dt.getFullYear(), 0, 1);
-  return dt.getFullYear() + '-W' + Math.ceil(((dt - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  const dt = new Date(d || new Date());
+  // Shift so Monday=0 ... Sunday=6
+  const day = (dt.getDay() + 6) % 7; // Mon=0, Tue=1 ... Sun=6
+  // Find this week's Monday
+  const monday = new Date(dt);
+  monday.setDate(dt.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+  // ISO week number based on that Monday
+  const jan4 = new Date(monday.getFullYear(), 0, 4); // Jan 4 is always in week 1
+  const weekNum = Math.round((monday - jan4) / 604800000) + 1;
+  return monday.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
 }
+
+// Month = current calendar month. Returns e.g. "2026-02"
 function monthStr(d) {
   const dt = d || new Date();
-  return dt.getFullYear() + '-' + (dt.getMonth() + 1);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
 }
+
 function daysSince(dateStr) {
   if (!dateStr) return 999;
   return Math.floor((new Date() - new Date(dateStr)) / 86400000);
@@ -1411,7 +1458,7 @@ renderHabits();
 renderGarden();
 
 // ═══════════════════════════════════════
-//  iOS / MOBILE DETECTION & INSTALL BANNER
+//  iOS / MOBILE DETECTION & INSTALL GATE
 // ═══════════════════════════════════════
 function isIOS() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -1424,32 +1471,27 @@ function isSafari() {
   return /safari/i.test(navigator.userAgent) && !/chrome|chromium|crios/i.test(navigator.userAgent);
 }
 
-// Show install banner on iOS Safari when NOT already installed
+// On iOS Safari (non-installed): show fullscreen gate, block everything else
 if (isIOS() && isSafari() && !isInStandaloneMode()) {
-  const banner = document.getElementById('installBanner');
-  // Only show if they haven't dismissed it this session
-  if (!sessionStorage.getItem('installBannerDismissed')) {
-    banner.classList.add('visible');
-  }
+  document.getElementById('iosGate').classList.remove('hidden');
+  // Hide the main app and all modals so nothing is accessible behind the gate
+  document.querySelector('.desktop').style.display = 'none';
+  document.querySelector('.taskbar').style.display = 'none';
+  document.getElementById('welcomeOverlay').classList.add('hidden');
+  document.getElementById('settingsOverlay').classList.add('hidden');
+  document.getElementById('toast').style.display = 'none';
 }
 
-function showIOSInstall() {
-  document.getElementById('iosInstallModal').classList.remove('hidden');
-}
-function closeIOSInstall() {
-  document.getElementById('iosInstallModal').classList.add('hidden');
-  document.getElementById('installBanner').classList.remove('visible');
-  sessionStorage.setItem('installBannerDismissed', '1');
-}
-
-// On standalone (installed PWA), hide the taskbar start button text to save space
+// On standalone (installed PWA) — gate is already hidden, app runs normally
+// Shrink start button text to just icon
 if (isInStandaloneMode()) {
-  document.querySelector('.start-btn').textContent = '⊞';
+  const sb = document.querySelector('.start-btn');
+  if (sb) sb.textContent = '⊞';
 }
 
 // Fix mobile scroll — prevent body scroll bounce interfering with panel scroll
 document.querySelectorAll('.panel-inner').forEach(el => {
-  el.addEventListener('touchstart', e => { if (el.scrollTop === 0) el.scrollTop = 1; }, { passive: true });
+  el.addEventListener('touchstart', () => { if (el.scrollTop === 0) el.scrollTop = 1; }, { passive: true });
 });
 </script>
 </body>
