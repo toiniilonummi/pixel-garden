@@ -83,37 +83,6 @@
   .modal-form-inline { display: flex; gap: 8px; }
   .modal-form-inline .win-input { flex: 1; }
 
-  .notif-section {
-    background: #e8e8e8;
-    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
-    padding: 8px; display: flex; flex-direction: column; gap: 6px;
-  }
-  .notif-section label { font-family: 'Press Start 2P', monospace; font-size: 7px; }
-  .notif-toggle-row { display: flex; align-items: center; gap: 8px; }
-  .notif-time-row { display: flex; align-items: center; gap: 8px; }
-  .notif-time-row span { font-family: 'VT323', monospace; font-size: 18px; }
-
-  /* Win95 checkbox */
-  .win-checkbox-label {
-    display: flex; align-items: center; gap: 6px; cursor: pointer;
-    font-family: 'VT323', monospace; font-size: 18px;
-  }
-  .win-checkbox {
-    width: 14px; height: 14px; background: white; flex-shrink: 0;
-    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white);
-    display: flex; align-items: center; justify-content: center; font-size: 12px;
-    color: var(--win-blue); font-weight: bold; cursor: pointer;
-  }
-  input[type=checkbox] { display: none; }
-
-  .notif-status {
-    font-family: 'VT323', monospace; font-size: 15px; color: #555; min-height: 18px;
-  }
-  .notif-status.ok { color: #006622; }
-  .notif-status.err { color: #aa0000; }
-
   .modal-btn-row { display: flex; justify-content: center; padding-top: 4px; }
 
   /* ── WIN SHARED ── */
@@ -247,7 +216,9 @@
   .habit-streak { font-family: 'VT323', monospace; font-size: 15px; color: #800000; }
   .habit-plant-icon { font-size: 18px; }
   .delete-btn { font-size: 12px; cursor: pointer; opacity: 0.35; padding: 0 4px; flex-shrink: 0; }
+  .edit-btn { font-size: 12px; cursor: pointer; opacity: 0.35; padding: 0 4px; flex-shrink: 0; }
   .habit-row:hover .delete-btn { opacity: 1; color: white; }
+  .habit-row:hover .edit-btn { opacity: 1; }
   .replant-btn { font-family: 'Press Start 2P', monospace; font-size: 6px; background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); padding: 3px 6px; cursor: pointer; color: black; white-space: nowrap; }
   .replant-btn:active { border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); }
 
@@ -285,9 +256,41 @@
 
   canvas.plant-canvas { image-rendering: pixelated; display: block; }
 
+  /* ── MOBILE SEED BUTTON (in habits title bar) ── */
+  .mobile-seed-btn {
+    display: none; /* hidden on desktop */
+    font-family: 'Press Start 2P', monospace; font-size: 6px;
+    background: #7CFC00; color: #003300;
+    border-top: 2px solid #adff2f; border-left: 2px solid #adff2f;
+    border-right: 2px solid #228B22; border-bottom: 2px solid #228B22;
+    padding: 4px 8px; cursor: pointer; white-space: nowrap; line-height: 1.4;
+  }
+  .mobile-seed-btn:active {
+    border-top: 2px solid #228B22; border-left: 2px solid #228B22;
+    border-right: 2px solid #adff2f; border-bottom: 2px solid #adff2f;
+  }
+
+  /* seed modal — same sheet style as other modals but a bit wider */
+  .seed-modal-window { width: 460px; }
+
   /* ── SETTINGS COG in title bar ── */
   .settings-cog { cursor: pointer; font-size: 12px; padding: 0 4px; opacity: 0.85; }
   .settings-cog:hover { opacity: 1; }
+
+  /* ── DAILY BRIEFING ITEMS ── */
+  .briefing-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 10px;
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+    background: white;
+  }
+  .briefing-item-icon { font-size: 20px; flex-shrink: 0; line-height: 1.2; }
+  .briefing-item-text { font-family: 'VT323', monospace; font-size: 17px; line-height: 1.4; color: #222; flex: 1; }
+  .briefing-item-text strong { font-family: 'Press Start 2P', monospace; font-size: 7px; display: block; margin-bottom: 3px; }
+  .briefing-item.good { background: #f0fff0; }
+  .briefing-item.bad  { background: #fff8f0; }
+  .briefing-item.warn { background: #fffbe0; }
 
   /* ═══════════════════════════════════
      MOBILE RESPONSIVE
@@ -310,8 +313,8 @@
 
     .garden-panel { grid-column: 1 / -1; }
 
-    /* Shorter garden on mobile so more fits above fold */
-    .garden-canvas-wrapper { height: 160px; }
+    /* Taller garden on mobile — more square, less landscape */
+    .garden-canvas-wrapper { height: min(55vw, 320px); }
 
     /* Bigger touch targets on habit rows */
     .habit-row {
@@ -393,8 +396,6 @@
     .modal-form-inline { flex-direction: column; gap: 6px; }
     .win-checkbox-label { font-size: 20px; }
     .win-checkbox { width: 20px; height: 20px; font-size: 16px; }
-    .notif-status { font-size: 14px; }
-    .notif-time-row span { font-size: 20px; }
 
     /* XP bar row */
     .xp-bar-row { padding: 4px 4px; gap: 6px; }
@@ -407,8 +408,22 @@
     .plants-row { padding: 0 8px; }
     .plant-label { font-size: 10px; }
 
-    /* Delete btn — bigger tap zone */
+    /* Delete/edit btns — bigger tap zone */
     .delete-btn { font-size: 16px; padding: 4px 8px; opacity: 0.5; }
+    .edit-btn { font-size: 16px; padding: 4px 8px; opacity: 0.5; }
+
+    /* Hide desktop add panel, show mobile seed button instead */
+    #addPanel { display: none !important; }
+    .mobile-seed-btn { display: block; }
+
+    /* Seed modal sheet — slide up from bottom on mobile */
+    #seedModalOverlay { align-items: flex-end; }
+    .seed-modal-window {
+      width: 100%; max-width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      border-bottom: none;
+      box-shadow: 0 -4px 0 var(--win-black);
+    }
 
     /* Add panel hint text */
     .add-panel > div[style*="padding:4px 8px"] { font-size: 13px !important; }
@@ -594,27 +609,6 @@
         </div>
       </div>
 
-      <hr class="modal-divider">
-
-      <!-- NOTIFICATION SECTION -->
-      <div class="notif-section">
-        <label>🔔 DAILY GARDEN REMINDER</label>
-
-        <label class="win-checkbox-label" onclick="toggleNotifCheck()">
-          <div class="win-checkbox" id="notifCheckbox"></div>
-          Remind me every evening to check in
-        </label>
-
-        <div class="notif-time-row" id="notifTimeRow" style="display:none;">
-          <span>Remind me at:</span>
-          <input class="win-input" id="notifTime" type="time" value="20:00" style="width:100px;">
-        </div>
-
-        <div class="notif-status" id="notifStatus">
-          Browser notifications let you get reminders even when the tab is closed.
-        </div>
-      </div>
-
       <div class="modal-btn-row">
         <button class="action-btn primary" onclick="submitSignup()">[ 🌱 START GROWING ]</button>
       </div>
@@ -624,7 +618,7 @@
 </div>
 
 <!-- ═══════════════════════════════════════════
-     SETTINGS MODAL  (re-open to edit profile/notifs)
+     SETTINGS MODAL
 ════════════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="settingsOverlay">
   <div class="modal-window">
@@ -640,21 +634,6 @@
           <input class="win-input" id="settingsFirst" type="text" maxlength="20" placeholder="First name">
           <input class="win-input" id="settingsLast"  type="text" maxlength="30" placeholder="Last name">
         </div>
-      </div>
-
-      <hr class="modal-divider">
-
-      <div class="notif-section">
-        <label>🔔 DAILY GARDEN REMINDER</label>
-        <label class="win-checkbox-label" onclick="toggleSettingsNotifCheck()">
-          <div class="win-checkbox" id="settingsNotifCheckbox"></div>
-          Remind me every evening to check in
-        </label>
-        <div class="notif-time-row" id="settingsNotifTimeRow" style="display:none;">
-          <span>Remind me at:</span>
-          <input class="win-input" id="settingsNotifTime" type="time" value="20:00" style="width:100px;">
-        </div>
-        <div class="notif-status" id="settingsNotifStatus"></div>
       </div>
 
       <div class="modal-btn-row" style="gap:8px; justify-content:center; display:flex;">
@@ -674,6 +653,173 @@
     <div class="title-bar-controls"><div class="win-btn">✕</div></div>
   </div>
   <div class="popup-toast-body" id="toast-msg"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — PLANT A NEW SEED MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="seedModalOverlay">
+  <div class="modal-window seed-modal-window">
+    <div class="title-bar">
+      <div class="title-bar-text">🌱 Plant a New Seed</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeSeedModal()">✕</div></div>
+    </div>
+    <div class="modal-body" style="gap:8px;">
+
+      <div class="modal-form-row">
+        <label>HABIT NAME:</label>
+        <input class="win-input" id="habitNameM" type="text" maxlength="30" placeholder="e.g. Read 10 pages, Morning jog...">
+      </div>
+
+      <div class="modal-form-row">
+        <label>PLANT TYPE:</label>
+        <select class="win-select" id="habitPlantM">
+          <option value="flower">🌸 Flower</option>
+          <option value="tree">🌳 Tree</option>
+          <option value="cactus">🌵 Cactus</option>
+          <option value="mushroom">🍄 Mushroom</option>
+          <option value="fern">🌿 Fern</option>
+        </select>
+      </div>
+
+      <div class="modal-form-row">
+        <label>HOW OFTEN?</label>
+        <select class="win-select" id="freqTypeM" onchange="onFreqChangeM()">
+          <option value="daily">📅 Daily</option>
+          <option value="weekly">📆 Weekly</option>
+          <option value="monthly">🗓️ Monthly</option>
+        </select>
+      </div>
+
+      <div class="freq-sub visible" id="subDailyM">
+        <label>🎯 DAYS IN A ROW TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="dailyTargetM" type="number" min="1" max="365" value="30">
+          <span style="font-family:'VT323',monospace;font-size:18px;">days in a row</span>
+        </div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 5 days → plant dies</span>
+      </div>
+      <div class="freq-sub" id="subWeeklyM">
+        <label>🎯 TIMES PER WEEK TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="weeklyTargetM" type="number" min="1" max="7" value="3">
+          <span style="font-family:'VT323',monospace;font-size:18px;">times / week</span>
+        </div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 weeks → plant dies</span>
+      </div>
+      <div class="freq-sub" id="subMonthlyM">
+        <label>🎯 TIMES PER MONTH TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="monthlyTargetM" type="number" min="1" max="31" value="12">
+          <span style="font-family:'VT323',monospace;font-size:18px;">times / month</span>
+        </div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 months → plant dies</span>
+      </div>
+
+      <div style="font-family:'VT323',monospace;font-size:14px;color:#555;line-height:1.6;padding:2px 0;">
+        ⭐ +1 XP per check · 💚 +3 XP on goal · 🌧️ 100 XP = rain shower!
+      </div>
+
+      <div class="modal-btn-row" style="gap:8px;display:flex;justify-content:center;">
+        <button class="action-btn" onclick="closeSeedModal()">[ Cancel ]</button>
+        <button class="action-btn primary" onclick="addHabitMobile()">[ 🌱 PLANT IT ]</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     GOAL CELEBRATION MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="celebOverlay">
+  <div class="modal-window" style="max-width:380px;">
+    <div class="title-bar">
+      <div class="title-bar-text">🏆 Goal Achieved!</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeCeleb()">✕</div></div>
+    </div>
+    <div class="modal-body" style="text-align:center;gap:12px;">
+      <div class="modal-welcome-art" id="celebEmoji">💚</div>
+      <div class="modal-tagline" id="celebTitle" style="font-size:9px;line-height:2;"></div>
+      <div style="font-family:'VT323',monospace;font-size:20px;color:#228B22;line-height:1.5;" id="celebBody"></div>
+      <hr class="modal-divider">
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--win-blue);line-height:1.8;">Want to raise the bar?</div>
+      <div style="font-family:'VT323',monospace;font-size:17px;color:#444;line-height:1.5;" id="celebGoalDesc"></div>
+      <div class="modal-btn-row" style="gap:10px;display:flex;justify-content:center;">
+        <button class="action-btn" onclick="closeCeleb()">[ Keep it as is ]</button>
+        <button class="action-btn primary" onclick="celebUpGoal()">[ 🎯 Up my goal! ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     EDIT GOAL MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="editOverlay">
+  <div class="modal-window" style="max-width:380px;">
+    <div class="title-bar">
+      <div class="title-bar-text">✏️ Edit Goal</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeEdit()">✕</div></div>
+    </div>
+    <div class="modal-body" style="gap:10px;">
+      <div style="font-family:'VT323',monospace;font-size:20px;color:#333;" id="editHabitLabel"></div>
+      <hr class="modal-divider">
+
+      <div class="modal-form-row" id="editDailyRow">
+        <label>STREAK GOAL (days in a row):</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="win-input" id="editDailyTarget" type="number" min="1" max="365" style="width:80px;">
+          <span style="font-family:'VT323',monospace;font-size:18px;">consecutive days</span>
+        </div>
+        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 5 days → plant dies</div>
+      </div>
+
+      <div class="modal-form-row" id="editWeeklyRow">
+        <label>WEEKLY GOAL (times per week):</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="win-input" id="editWeeklyTarget" type="number" min="1" max="7" style="width:80px;">
+          <span style="font-family:'VT323',monospace;font-size:18px;">times / week</span>
+        </div>
+        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 2 weeks → plant dies</div>
+      </div>
+
+      <div class="modal-form-row" id="editMonthlyRow">
+        <label>MONTHLY GOAL (times per month):</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="win-input" id="editMonthlyTarget" type="number" min="1" max="31" style="width:80px;">
+          <span style="font-family:'VT323',monospace;font-size:18px;">times / month</span>
+        </div>
+        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 2 months → plant dies</div>
+      </div>
+
+      <div class="modal-btn-row" style="gap:8px;display:flex;justify-content:center;">
+        <button class="action-btn" onclick="closeEdit()">[ Cancel ]</button>
+        <button class="action-btn primary" onclick="saveEdit()">[ ✅ Save Goal ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DAILY BRIEFING MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="briefingOverlay">
+  <div class="modal-window" style="max-width:400px;">
+    <div class="title-bar">
+      <div class="title-bar-text" id="briefingTitleBar">🌱 Good Morning!</div>
+      <div class="title-bar-controls"><div class="win-btn" onclick="closeBriefing()">✕</div></div>
+    </div>
+    <div class="modal-body" style="gap:10px;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--win-blue);line-height:2;text-align:center;" id="briefingGreeting"></div>
+      <hr class="modal-divider">
+      <div id="briefingItems" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;"></div>
+      <hr class="modal-divider">
+      <div class="modal-btn-row">
+        <button class="action-btn primary" onclick="closeBriefing()">[ 🌱 Let's grow! ]</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -712,7 +858,10 @@
 
       <!-- HABITS LIST -->
       <div class="habits-panel window">
-        <div class="title-bar"><div class="title-bar-text">📋 Today's Habits</div></div>
+        <div class="title-bar">
+          <div class="title-bar-text">📋 Today's Habits</div>
+          <button class="mobile-seed-btn" onclick="openSeedModal()">🌱 Plant a New Seed</button>
+        </div>
         <div class="panel-inner" id="habitList">
           <div class="empty-state" id="emptyState">No habits yet!<br>Add one to start<br>growing your garden 🌱</div>
         </div>
@@ -723,9 +872,9 @@
         </div>
       </div>
 
-      <!-- ADD HABIT FORM -->
-      <div class="add-panel window">
-        <div class="title-bar"><div class="title-bar-text">➕ Plant a New Habit</div></div>
+      <!-- ADD HABIT FORM (desktop only — hidden on mobile) -->
+      <div class="add-panel window" id="addPanel">
+        <div class="title-bar"><div class="title-bar-text">🌱 Plant a New Seed</div></div>
 
         <div class="form-row">
           <label>HABIT NAME:</label>
@@ -788,7 +937,6 @@
     <div class="status-bar">
       <div class="status-segment" id="dateStatus">Loading...</div>
       <div class="status-segment">Pixel Garden v4.0</div>
-      <div class="status-segment" id="notifBadge">🔔 No reminder set</div>
     </div>
   </div>
 </div>
@@ -804,7 +952,7 @@
 //  STATE
 // ═══════════════════════════════════════
 let state = JSON.parse(localStorage.getItem('pixelGardenV4') || 'null') || {
-  user: null,          // { firstName, lastName, notifEnabled, notifTime }
+  user: null,          // { firstName, lastName }
   totalXP: 0,
   habits: []
 };
@@ -820,19 +968,7 @@ function save() {
 // ═══════════════════════════════════════
 //  SIGNUP MODAL
 // ═══════════════════════════════════════
-let signupNotifEnabled = false;
-
-function toggleNotifCheck() {
-  signupNotifEnabled = !signupNotifEnabled;
-  document.getElementById('notifCheckbox').textContent = signupNotifEnabled ? '✓' : '';
-  document.getElementById('notifTimeRow').style.display = signupNotifEnabled ? 'flex' : 'none';
-  document.getElementById('notifStatus').textContent = signupNotifEnabled
-    ? 'Your browser will ask for notification permission.'
-    : 'Browser notifications let you get reminders even when the tab is closed.';
-  document.getElementById('notifStatus').className = 'notif-status';
-}
-
-async function submitSignup() {
+function submitSignup() {
   const first = document.getElementById('signupFirst').value.trim();
   const last  = document.getElementById('signupLast').value.trim();
   if (!first) {
@@ -841,31 +977,11 @@ async function submitSignup() {
     return;
   }
   document.getElementById('signupFirst').style.outline = '';
-
-  const notifTime = signupNotifEnabled ? document.getElementById('notifTime').value : null;
-  let notifGranted = false;
-
-  if (signupNotifEnabled) {
-    notifGranted = await requestNotifPermission('notifStatus');
-  }
-
-  user = {
-    firstName: first,
-    lastName: last,
-    notifEnabled: notifGranted,
-    notifTime: notifGranted ? notifTime : null
-  };
-
+  user = { firstName: first, lastName: last, lastBriefingDate: todayStr() };
   save();
   applyUserProfile();
   document.getElementById('welcomeOverlay').classList.add('hidden');
-
-  if (notifGranted && notifTime) {
-    scheduleNotifCheck();
-    showToast(`🌱 Welcome, ${first}! Reminder set for ${fmtTime(notifTime)} every evening 🔔`);
-  } else {
-    showToast(`🌱 Welcome to your garden, ${first}! Time to grow! 🌿`);
-  }
+  showToast(`🌱 Welcome to your garden, ${first}! Time to grow! 🌿`);
 }
 
 function applyUserProfile() {
@@ -875,26 +991,15 @@ function applyUserProfile() {
   document.getElementById('gardenTitle').textContent = `🏡 ${possessive} Garden`;
   document.getElementById('mainTitle').textContent = `Pixel Garden — ${possessive} Habit Tracker`;
   document.title = `🌱 ${possessive} Pixel Garden`;
-  updateNotifBadge();
 }
 
 // ═══════════════════════════════════════
 //  SETTINGS MODAL
 // ═══════════════════════════════════════
-let settingsNotifEnabled = false;
-
 function openSettings() {
   if (!user) return;
   document.getElementById('settingsFirst').value = user.firstName || '';
   document.getElementById('settingsLast').value  = user.lastName  || '';
-  settingsNotifEnabled = !!user.notifEnabled;
-  document.getElementById('settingsNotifCheckbox').textContent = settingsNotifEnabled ? '✓' : '';
-  document.getElementById('settingsNotifTimeRow').style.display = settingsNotifEnabled ? 'flex' : 'none';
-  document.getElementById('settingsNotifTime').value = user.notifTime || '20:00';
-  document.getElementById('settingsNotifStatus').textContent = settingsNotifEnabled
-    ? `Reminder active at ${fmtTime(user.notifTime)}`
-    : 'No reminder currently set.';
-  document.getElementById('settingsNotifStatus').className = 'notif-status' + (settingsNotifEnabled ? ' ok' : '');
   document.getElementById('settingsOverlay').classList.remove('hidden');
 }
 
@@ -902,137 +1007,15 @@ function closeSettings() {
   document.getElementById('settingsOverlay').classList.add('hidden');
 }
 
-function toggleSettingsNotifCheck() {
-  settingsNotifEnabled = !settingsNotifEnabled;
-  document.getElementById('settingsNotifCheckbox').textContent = settingsNotifEnabled ? '✓' : '';
-  document.getElementById('settingsNotifTimeRow').style.display = settingsNotifEnabled ? 'flex' : 'none';
-  document.getElementById('settingsNotifStatus').textContent = settingsNotifEnabled
-    ? 'Your browser will ask for notification permission.' : 'Reminders disabled.';
-  document.getElementById('settingsNotifStatus').className = 'notif-status';
-}
-
-async function saveSettings() {
+function saveSettings() {
   const first = document.getElementById('settingsFirst').value.trim();
   const last  = document.getElementById('settingsLast').value.trim();
   if (!first) { document.getElementById('settingsFirst').focus(); return; }
-
-  const notifTime = document.getElementById('settingsNotifTime').value;
-  let notifGranted = user.notifEnabled || false;
-
-  if (settingsNotifEnabled && !user.notifEnabled) {
-    notifGranted = await requestNotifPermission('settingsNotifStatus');
-  } else if (!settingsNotifEnabled) {
-    notifGranted = false;
-  }
-
-  user = { ...user, firstName: first, lastName: last, notifEnabled: notifGranted, notifTime: notifGranted ? notifTime : null };
+  user = { ...user, firstName: first, lastName: last };
   save();
   applyUserProfile();
   closeSettings();
-
-  if (notifGranted) scheduleNotifCheck();
   showToast(`✅ Settings saved! Hello, ${first}! 👋`);
-}
-
-// ═══════════════════════════════════════
-//  NOTIFICATIONS
-// ═══════════════════════════════════════
-async function requestNotifPermission(statusElId) {
-  const statusEl = document.getElementById(statusElId);
-  if (!('Notification' in window)) {
-    statusEl.textContent = '❌ Your browser does not support notifications.';
-    statusEl.className = 'notif-status err';
-    return false;
-  }
-  if (Notification.permission === 'granted') {
-    statusEl.textContent = '✅ Notifications already allowed!';
-    statusEl.className = 'notif-status ok';
-    return true;
-  }
-  if (Notification.permission === 'denied') {
-    statusEl.textContent = '❌ Notifications blocked. Please allow them in browser settings.';
-    statusEl.className = 'notif-status err';
-    return false;
-  }
-  const perm = await Notification.requestPermission();
-  if (perm === 'granted') {
-    statusEl.textContent = '✅ Permission granted! Reminders are active.';
-    statusEl.className = 'notif-status ok';
-    return true;
-  } else {
-    statusEl.textContent = '❌ Permission denied. You can enable in browser settings later.';
-    statusEl.className = 'notif-status err';
-    return false;
-  }
-}
-
-function fmtTime(timeStr) {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
-}
-
-// Check every minute if it's time to fire a notification
-let notifCheckInterval = null;
-function scheduleNotifCheck() {
-  clearInterval(notifCheckInterval);
-  notifCheckInterval = setInterval(() => {
-    if (!user || !user.notifEnabled || !user.notifTime) return;
-    if (Notification.permission !== 'granted') return;
-
-    const now = new Date();
-    const [targetH, targetM] = user.notifTime.split(':').map(Number);
-    if (now.getHours() === targetH && now.getMinutes() === targetM) {
-      // Don't fire more than once per day
-      const todayKey = now.toDateString();
-      if (user.lastNotifSent === todayKey) return;
-      user.lastNotifSent = todayKey;
-      save();
-      fireGardenNotification();
-    }
-  }, 30000); // check every 30s
-
-  // Also check immediately on page load in case they missed it
-  checkMissedNotif();
-}
-
-function checkMissedNotif() {
-  if (!user || !user.notifEnabled || !user.notifTime) return;
-  if (Notification.permission !== 'granted') return;
-  const now = new Date();
-  const [targetH, targetM] = user.notifTime.split(':').map(Number);
-  const todayKey = now.toDateString();
-  // Fire if within the same hour and not yet sent today
-  if (now.getHours() === targetH && user.lastNotifSent !== todayKey) {
-    user.lastNotifSent = todayKey;
-    save();
-    fireGardenNotification();
-  }
-}
-
-function fireGardenNotification() {
-  const name = user ? user.firstName : 'Gardener';
-  const undoneCt = habits.filter(h => !h.dead && !checkedThisPeriodToday(h)).length;
-  const body = undoneCt > 0
-    ? `You have ${undoneCt} habit${undoneCt > 1 ? 's' : ''} to check off today. Your plants are waiting! 🌱`
-    : `All habits done today! Come admire your beautiful garden 🌷`;
-
-  new Notification(`🌱 ${name}'s Garden — Daily Check-in!`, {
-    body,
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🌱</text></svg>',
-    tag: 'pixel-garden-reminder'
-  });
-}
-
-function updateNotifBadge() {
-  const el = document.getElementById('notifBadge');
-  if (user && user.notifEnabled && user.notifTime) {
-    el.textContent = `🔔 ${fmtTime(user.notifTime)} reminder`;
-  } else {
-    el.textContent = '🔔 No reminder';
-  }
 }
 
 // ═══════════════════════════════════════
@@ -1120,9 +1103,11 @@ function progressLabel(h) {
 //  MISSED PERIOD CHECK
 // ═══════════════════════════════════════
 function runMissedChecks() {
+  const now = new Date();
   habits.forEach(h => {
     if (h.dead) return;
     h.missedPeriods = h.missedPeriods || 0;
+
     if (h.freq === 'daily') {
       const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
       if (h.lastChecked !== todayStr() && h.lastChecked !== yesterday.toDateString()) {
@@ -1132,20 +1117,58 @@ function runMissedChecks() {
         if (days > 1) h.streak = 0;
       } else if (h.lastChecked === todayStr()) { h.missedPeriods = 0; }
     }
+
     if (h.freq === 'weekly') {
-      const tw = weekStr(); const lw = weekStr(new Date(Date.now() - 7*86400000));
+      const tw = weekStr();
+      // Only penalise if the habit existed before this week started
+      // (i.e. it was created in a prior week, not this one)
+      const createdWeek = h.createdAt ? weekStr(new Date(h.createdAt)) : tw;
+      if (createdWeek === tw) return; // brand new this week — no penalty yet
+
       if (h.lastCheckedWeek !== tw) {
-        const lastWeekDone = ((h.weekChecks||{})[lw]||0) >= (h.weeklyTarget||3);
-        if (!lastWeekDone) { h.missedPeriods++; if (h.missedPeriods >= 2) killPlant(h); }
-      } else if (goalMet(h)) h.missedPeriods = 0;
+        // We're in a new week — check if the most recently completed week was missed
+        // Find which week was last (could be more than 1 week ago)
+        const lastRelevantWeek = h.lastCheckedWeek || createdWeek;
+        const lastWeekDone = ((h.weekChecks||{})[lastRelevantWeek]||0) >= (h.weeklyTarget||1);
+
+        // Only increment once per week boundary — track which week we last penalised
+        if (h.lastPenalisedWeek !== tw) {
+          if (!lastWeekDone) {
+            h.missedPeriods++;
+            h.lastPenalisedWeek = tw;
+            if (h.missedPeriods >= 2) killPlant(h);
+          } else {
+            h.missedPeriods = 0;
+            h.lastPenalisedWeek = tw;
+          }
+        }
+      } else if (goalMet(h)) {
+        h.missedPeriods = 0;
+      }
     }
+
     if (h.freq === 'monthly') {
-      const tm = monthStr(); const today = new Date();
-      const lm = monthStr(new Date(today.getFullYear(), today.getMonth()-1, 1));
+      const tm = monthStr();
+      const createdMonth = h.createdAt ? monthStr(new Date(h.createdAt)) : tm;
+      if (createdMonth === tm) return; // brand new this month — no penalty yet
+
       if (h.lastCheckedMonth !== tm) {
-        const lastMonthDone = ((h.monthChecks||{})[lm]||0) >= (h.monthlyTarget||12);
-        if (!lastMonthDone) { h.missedPeriods++; if (h.missedPeriods >= 2) killPlant(h); }
-      } else if (goalMet(h)) h.missedPeriods = 0;
+        const lastRelevantMonth = h.lastCheckedMonth || createdMonth;
+        const lastMonthDone = ((h.monthChecks||{})[lastRelevantMonth]||0) >= (h.monthlyTarget||1);
+
+        if (h.lastPenalisedMonth !== tm) {
+          if (!lastMonthDone) {
+            h.missedPeriods++;
+            h.lastPenalisedMonth = tm;
+            if (h.missedPeriods >= 2) killPlant(h);
+          } else {
+            h.missedPeriods = 0;
+            h.lastPenalisedMonth = tm;
+          }
+        }
+      } else if (goalMet(h)) {
+        h.missedPeriods = 0;
+      }
     }
   });
   save();
@@ -1347,8 +1370,9 @@ function renderHabits() {
       const rb=document.createElement('button');rb.className='replant-btn';rb.textContent='🌱 REPLANT';rb.onclick=e=>{e.stopPropagation();replantHabit(h.id);};
       row.append(check,name,tag,prog,healthEl,icon,rb);
     } else {
+      const edit=document.createElement('span');edit.className='edit-btn';edit.textContent='✏️';edit.title='Edit goal';edit.onclick=e=>{e.stopPropagation();openEdit(h.id);};
       const del=document.createElement('span');del.className='delete-btn';del.textContent='✕';del.title='Remove habit';del.onclick=e=>{e.stopPropagation();deleteHabit(h.id);};
-      row.append(check,name,tag,prog,healthEl,icon,del);
+      row.append(check,name,tag,prog,healthEl,icon,edit,del);
       row.onclick=()=>toggleHabit(h.id,row);
     }
     list.appendChild(row);
@@ -1384,7 +1408,7 @@ function toggleHabit(id, rowEl) {
   if(!oldGoalMet&&nowGoalMet){
     h.fertilized=true;
     awardXP(3,cx,cy,'fert');
-    setTimeout(()=>{showSplash('💚');showToast(`💚 GOAL SMASHED! "${h.name}" earned a FERTILIZER BOOST! +3 XP 🌿✨`);},150);
+    setTimeout(()=>{ showSplash('💚'); showCelebration(h); }, 150);
   } else {
     awardXP(1,cx,cy,false);
     if(newStage>oldStage)showToast(`✨ "${h.name}" leveled up to ${STAGE_NAMES[newStage]}! +1 XP`);
@@ -1417,6 +1441,121 @@ function onFreqChange() {
 }
 
 // ═══════════════════════════════════════
+//  CELEBRATION MODAL
+// ═══════════════════════════════════════
+let celebHabitId = null;
+function showCelebration(h) {
+  celebHabitId = h.id;
+  const name = user ? user.firstName : 'Gardener';
+  const plantEmoji = {flower:'🌸',tree:'🌳',cactus:'🌵',mushroom:'🍄',fern:'🌿'}[h.plantType]||'🌱';
+
+  document.getElementById('celebEmoji').textContent = plantEmoji + ' 💚 ' + plantEmoji;
+  document.getElementById('celebTitle').textContent = `GOAL SMASHED, ${name.toUpperCase()}!`;
+
+  let bodyText = '';
+  if (h.freq==='daily')   bodyText = `${h.streak} days in a row! 🔥\nYour "${h.name}" plant earned a\n💚 FERTILIZER BOOST! +3 XP`;
+  if (h.freq==='weekly')  bodyText = `${h.weeklyTarget}x this week! 💪\nYour "${h.name}" plant earned a\n💚 FERTILIZER BOOST! +3 XP`;
+  if (h.freq==='monthly') bodyText = `${h.monthlyTarget}x this month! 🌟\nYour "${h.name}" plant earned a\n💚 FERTILIZER BOOST! +3 XP`;
+  document.getElementById('celebBody').textContent = bodyText;
+
+  let goalText = '';
+  if (h.freq==='daily')   goalText = `Current goal: ${h.dailyTarget} days in a row.\nWant to challenge yourself to more?`;
+  if (h.freq==='weekly')  goalText = `Current goal: ${h.weeklyTarget}x per week.\nWant to push it higher?`;
+  if (h.freq==='monthly') goalText = `Current goal: ${h.monthlyTarget}x per month.\nWant to push it higher?`;
+  document.getElementById('celebGoalDesc').textContent = goalText;
+
+  document.getElementById('celebOverlay').classList.remove('hidden');
+}
+function closeCeleb() {
+  document.getElementById('celebOverlay').classList.add('hidden');
+  celebHabitId = null;
+}
+function celebUpGoal() {
+  closeCeleb();
+  if (celebHabitId !== null) openEdit(celebHabitId);
+}
+
+// ═══════════════════════════════════════
+//  EDIT GOAL MODAL
+// ═══════════════════════════════════════
+let editHabitId = null;
+function openEdit(id) {
+  const h = habits.find(x => x.id === id);
+  if (!h) return;
+  editHabitId = id;
+  document.getElementById('editHabitLabel').textContent = `✏️ "${h.name}"`;
+  // Show only the relevant row
+  document.getElementById('editDailyRow').style.display   = h.freq==='daily'   ? 'flex' : 'none';
+  document.getElementById('editWeeklyRow').style.display  = h.freq==='weekly'  ? 'flex' : 'none';
+  document.getElementById('editMonthlyRow').style.display = h.freq==='monthly' ? 'flex' : 'none';
+  // Pre-fill current value
+  if (h.freq==='daily')   document.getElementById('editDailyTarget').value   = h.dailyTarget   || 30;
+  if (h.freq==='weekly')  document.getElementById('editWeeklyTarget').value  = h.weeklyTarget  || 3;
+  if (h.freq==='monthly') document.getElementById('editMonthlyTarget').value = h.monthlyTarget || 12;
+  document.getElementById('editOverlay').classList.remove('hidden');
+}
+function closeEdit() {
+  document.getElementById('editOverlay').classList.add('hidden');
+  editHabitId = null;
+}
+function saveEdit() {
+  const h = habits.find(x => x.id === editHabitId);
+  if (!h) return;
+  if (h.freq==='daily') {
+    const newTarget = Math.max(1, parseInt(document.getElementById('editDailyTarget').value)||30);
+    h.dailyTarget = newTarget;
+    // If current streak already meets new target, keep fertilized; else reset boost
+    if ((h.streak||0) < newTarget) h.fertilized = false;
+  }
+  if (h.freq==='weekly') {
+    const newTarget = Math.max(1, Math.min(7, parseInt(document.getElementById('editWeeklyTarget').value)||3));
+    h.weeklyTarget = newTarget;
+    if (((h.weekChecks||{})[weekStr()]||0) < newTarget) h.fertilized = false;
+  }
+  if (h.freq==='monthly') {
+    const newTarget = Math.max(1, Math.min(31, parseInt(document.getElementById('editMonthlyTarget').value)||12));
+    h.monthlyTarget = newTarget;
+    if (((h.monthChecks||{})[monthStr()]||0) < newTarget) h.fertilized = false;
+  }
+  save(); renderHabits(); renderGarden();
+  closeEdit();
+  showToast(`🎯 Goal updated! New target: ${goalDesc(h)} — you've got this! 💪`);
+}
+
+// ═══════════════════════════════════════
+//  MOBILE SEED MODAL
+// ═══════════════════════════════════════
+function openSeedModal() {
+  document.getElementById('seedModalOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('habitNameM').focus(), 100);
+}
+function closeSeedModal() {
+  document.getElementById('seedModalOverlay').classList.add('hidden');
+}
+function onFreqChangeM() {
+  const v=document.getElementById('freqTypeM').value;
+  ['Daily','Weekly','Monthly'].forEach(s=>document.getElementById('sub'+s+'M').classList.toggle('visible',v===s.toLowerCase()));
+}
+function addHabitMobile() {
+  const name=document.getElementById('habitNameM').value.trim();
+  const plantType=document.getElementById('habitPlantM').value;
+  const freq=document.getElementById('freqTypeM').value;
+  if(!name){document.getElementById('habitNameM').focus();return;}
+  const h={id:Date.now(),name,plantType,freq,lastChecked:null,totalChecks:0,streak:0,fertilized:false,dead:false,missedPeriods:0,createdAt:new Date().toISOString()};
+  if(freq==='daily')  h.dailyTarget  =Math.max(1,parseInt(document.getElementById('dailyTargetM').value)||30);
+  if(freq==='weekly') {h.weeklyTarget =Math.max(1,parseInt(document.getElementById('weeklyTargetM').value)||3); h.weekChecks={};}
+  if(freq==='monthly'){h.monthlyTarget=Math.max(1,parseInt(document.getElementById('monthlyTargetM').value)||12);h.monthChecks={};}
+  habits.push(h);
+  document.getElementById('habitNameM').value='';
+  // reset freq dropdowns for next time
+  document.getElementById('freqTypeM').value='daily';
+  onFreqChangeM();
+  closeSeedModal();
+  save();renderHabits();renderGarden();
+  showToast(`🌱 Planted "${name}"! Goal: ${goalDesc(h)} → earn 💚 fertilizer!`);
+}
+
+// ═══════════════════════════════════════
 //  TOAST / SPLASH / FLOAT
 // ═══════════════════════════════════════
 let toastTimer;
@@ -1440,22 +1579,169 @@ setInterval(updateClock,1000); updateClock();
 //  ENTER KEY
 // ═══════════════════════════════════════
 document.getElementById('habitName').addEventListener('keydown',e=>{if(e.key==='Enter')addHabit();});
+document.getElementById('habitNameM').addEventListener('keydown',e=>{if(e.key==='Enter')addHabitMobile();});
 document.getElementById('signupFirst').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('signupLast').focus();});
 document.getElementById('signupLast').addEventListener('keydown',e=>{if(e.key==='Enter')submitSignup();});
+
+// ═══════════════════════════════════════
+//  DAILY BRIEFING
+// ═══════════════════════════════════════
+function getTimeGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function yesterdayStr() {
+  const d = new Date(); d.setDate(d.getDate() - 1); return d.toDateString();
+}
+
+function shouldShowBriefing() {
+  if (!user) return false;
+  const today = todayStr();
+  // Show once per calendar day
+  if (user.lastBriefingDate === today) return false;
+  // Don't show on the very first day they sign up
+  if (!user.lastBriefingDate) return false;
+  return true;
+}
+
+function buildBriefing() {
+  const name = user.firstName;
+  const greeting = getTimeGreeting();
+  const hour = new Date().getHours();
+
+  // Title bar & greeting line
+  const timeEmoji = hour < 12 ? '🌅' : hour < 17 ? '☀️' : '🌙';
+  document.getElementById('briefingTitleBar').textContent = `${timeEmoji} ${greeting}, ${name}!`;
+
+  const taglines = {
+    morning: `Here's the latest from your garden —\nlet's make today count! 🌱`,
+    afternoon: `Here's a midday garden update —\nyou've still got time to tend to it! 🌿`,
+    evening: `Here's how your garden is doing —\neven a quick check-in makes a difference. 🌙`,
+  };
+  const tagline = hour < 12 ? taglines.morning : hour < 17 ? taglines.afternoon : taglines.evening;
+  document.getElementById('briefingGreeting').textContent = tagline;
+
+  // Build items from yesterday's state
+  const yest = yesterdayStr();
+  const items = [];
+  const activeHabits = habits.filter(h => !h.hidden);
+
+  // --- Summary card: how many were checked yesterday ---
+  const checkedYest = activeHabits.filter(h => h.lastChecked === yest).length;
+  const aliveCount  = activeHabits.filter(h => !h.dead).length;
+
+  if (aliveCount > 0) {
+    if (checkedYest === aliveCount) {
+      items.push({ type:'good', icon:'🏆', title:'PERFECT DAY YESTERDAY!', text:`You checked off all ${checkedYest} of your habits. Your garden is loving you right now!` });
+    } else if (checkedYest > 0) {
+      items.push({ type:'warn', icon:'📋', title:'YESTERDAY AT A GLANCE', text:`You logged ${checkedYest} out of ${aliveCount} habits. Not bad — let's aim for the full set today!` });
+    } else {
+      items.push({ type:'bad', icon:'😴', title:'QUIET DAY YESTERDAY', text:`No habits were logged yesterday. Your plants missed you — let's get back on track today!` });
+    }
+  }
+
+  // --- Per-habit updates ---
+  activeHabits.forEach(h => {
+    const plantEmoji = {flower:'🌸',tree:'🌳',cactus:'🌵',mushroom:'🍄',fern:'🌿'}[h.plantType]||'🌱';
+
+    if (h.dead) {
+      items.push({ type:'bad', icon:'💀', title:`${h.name.toUpperCase()} DIED`, text:`Your ${plantEmoji} ${h.name} didn't survive. Tap "Replant" to give it a fresh start!` });
+      return;
+    }
+
+    const health = computeHealth(h);
+    const checkedYesterday = h.lastChecked === yest;
+
+    if (h.freq === 'daily') {
+      if (checkedYesterday) {
+        if (h.streak > 1) {
+          items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — ${h.streak} DAY STREAK! 🔥`, text:`Great work keeping up your daily habit. ${h.fertilized ? 'Your plant is glowing with fertilizer! 💚' : `${h.streak} of ${h.dailyTarget} days — keep it up!`}` });
+        } else {
+          items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — LOGGED ✓`, text:`Day ${h.streak} started. Build that streak!` });
+        }
+      } else if (health <= 3) {
+        const wiltWord = health === 0 ? 'died' : health <= 2 ? 'is struggling badly' : 'is wilting';
+        items.push({ type:'bad', icon:'🥀', title:`${h.name.toUpperCase()} ${wiltWord.toUpperCase()}`, text:`You missed logging ${h.name} yesterday. ${health > 0 ? `Check in today or it won't survive much longer!` : `Replant it to start fresh.`}` });
+      } else if (health === 4) {
+        items.push({ type:'warn', icon:'😟', title:`${h.name.toUpperCase()} IS FEELING SAD`, text:`${h.name} was skipped yesterday. One more miss and things get worse — log it today!` });
+      }
+    }
+
+    if (h.freq === 'weekly') {
+      const thisWeekCount = ((h.weekChecks||{})[weekStr()]||0);
+      if (h.fertilized && goalMet(h)) {
+        items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — WEEKLY GOAL MET! 💚`, text:`You hit your ${h.weeklyTarget}x/week target. Plant is fertilized and thriving!` });
+      } else if (checkedYesterday) {
+        items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — LOGGED ✓`, text:`${thisWeekCount} of ${h.weeklyTarget} times this week. ${h.weeklyTarget - thisWeekCount > 0 ? `${h.weeklyTarget - thisWeekCount} more to hit your goal!` : 'Goal reached!'}` });
+      } else if (health <= 2) {
+        items.push({ type:'bad', icon:'🥀', title:`${h.name.toUpperCase()} — STRUGGLING`, text:`${h.name} isn't getting enough attention. Log it this week before it's too late!` });
+      }
+    }
+
+    if (h.freq === 'monthly') {
+      const thisMonthCount = ((h.monthChecks||{})[monthStr()]||0);
+      if (h.fertilized && goalMet(h)) {
+        items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — MONTHLY GOAL MET! 💚`, text:`You hit your ${h.monthlyTarget}x/month target. Plant is fertilized!` });
+      } else if (checkedYesterday) {
+        items.push({ type:'good', icon:plantEmoji, title:`${h.name.toUpperCase()} — LOGGED ✓`, text:`${thisMonthCount} of ${h.monthlyTarget} times this month. Keep going!` });
+      }
+    }
+  });
+
+  // --- XP milestone note ---
+  if (totalXP > 0 && totalXP % 100 < 10) {
+    items.push({ type:'good', icon:'🌧️', title:'RAIN SHOWER INCOMING!', text:`You're close to ${Math.ceil(totalXP/100)*100} XP — just a few more check-ins to trigger a garden-wide growth boost!` });
+  }
+
+  // Render items
+  const container = document.getElementById('briefingItems');
+  container.innerHTML = '';
+  if (items.length === 0) {
+    const div = document.createElement('div');
+    div.className = 'briefing-item good';
+    div.innerHTML = '<div class="briefing-item-icon">🌱</div><div class="briefing-item-text"><strong>ALL GOOD!</strong>Your garden is ticking along nicely. Nothing urgent to report!</div>';
+    container.appendChild(div);
+  } else {
+    items.forEach(({ type, icon, title, text }) => {
+      const div = document.createElement('div');
+      div.className = `briefing-item ${type}`;
+      div.innerHTML = `<div class="briefing-item-icon">${icon}</div><div class="briefing-item-text"><strong>${title}</strong>${text}</div>`;
+      container.appendChild(div);
+    });
+  }
+}
+
+function showBriefing() {
+  buildBriefing();
+  document.getElementById('briefingOverlay').classList.remove('hidden');
+  // Mark today as seen
+  user.lastBriefingDate = todayStr();
+  save();
+}
+
+function closeBriefing() {
+  document.getElementById('briefingOverlay').classList.add('hidden');
+}
 
 // ═══════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════
 if (user) {
-  // Returning user — skip signup modal
   document.getElementById('welcomeOverlay').classList.add('hidden');
   applyUserProfile();
-  if (user.notifEnabled && user.notifTime) scheduleNotifCheck();
 }
 
 runMissedChecks();
 renderHabits();
 renderGarden();
+
+// Show daily briefing after a short delay so the garden renders first
+if (shouldShowBriefing()) {
+  setTimeout(showBriefing, 600);
+}
 
 // ═══════════════════════════════════════
 //  iOS / MOBILE DETECTION & INSTALL GATE
