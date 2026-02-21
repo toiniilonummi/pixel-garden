@@ -219,6 +219,12 @@
   .edit-btn { font-size: 12px; cursor: pointer; opacity: 0.35; padding: 0 4px; flex-shrink: 0; }
   .habit-row:hover .delete-btn { opacity: 1; color: white; }
   .habit-row:hover .edit-btn { opacity: 1; }
+  .delete-habit-btn {
+    background: #c0c0c0; color: #800000;
+    border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+  }
+  .delete-habit-btn:hover { background: #ffdddd; }
   .replant-btn { font-family: 'Press Start 2P', monospace; font-size: 6px; background: var(--win-gray); border-top: 2px solid var(--win-white); border-left: 2px solid var(--win-white); border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker); padding: 3px 6px; cursor: pointer; color: black; white-space: nowrap; }
   .replant-btn:active { border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker); border-right: 2px solid var(--win-white); border-bottom: 2px solid var(--win-white); }
 
@@ -301,7 +307,8 @@
     body { padding-bottom: env(safe-area-inset-bottom); }
 
     .desktop {
-      padding: 4px 4px 60px 4px;
+      /* Push content down to show teal behind iPhone camera area */
+      padding: max(20px, env(safe-area-inset-top)) 4px 60px 4px;
     }
 
     /* Single-column layout */
@@ -313,8 +320,8 @@
 
     .garden-panel { grid-column: 1 / -1; }
 
-    /* Taller garden on mobile — more square, less landscape */
-    .garden-canvas-wrapper { height: min(55vw, 320px); }
+    /* Taller garden on mobile — bigger and squarer */
+    .garden-canvas-wrapper { height: min(72vw, 380px); }
 
     /* Bigger touch targets on habit rows */
     .habit-row {
@@ -754,49 +761,76 @@
 </div>
 
 <!-- ═══════════════════════════════════════════
-     EDIT GOAL MODAL
+     EDIT HABIT MODAL
 ════════════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="editOverlay">
-  <div class="modal-window" style="max-width:380px;">
+  <div class="modal-window seed-modal-window">
     <div class="title-bar">
-      <div class="title-bar-text">✏️ Edit Goal</div>
+      <div class="title-bar-text">✏️ Edit Habit</div>
       <div class="title-bar-controls"><div class="win-btn" onclick="closeEdit()">✕</div></div>
     </div>
-    <div class="modal-body" style="gap:10px;">
-      <div style="font-family:'VT323',monospace;font-size:20px;color:#333;" id="editHabitLabel"></div>
-      <hr class="modal-divider">
+    <div class="modal-body" style="gap:8px;">
 
-      <div class="modal-form-row" id="editDailyRow">
-        <label>STREAK GOAL (days in a row):</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input class="win-input" id="editDailyTarget" type="number" min="1" max="365" style="width:80px;">
-          <span style="font-family:'VT323',monospace;font-size:18px;">consecutive days</span>
-        </div>
-        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 5 days → plant dies</div>
+      <div class="modal-form-row">
+        <label>HABIT NAME:</label>
+        <input class="win-input" id="editName" type="text" maxlength="30" placeholder="e.g. Read 10 pages, Morning jog...">
       </div>
 
-      <div class="modal-form-row" id="editWeeklyRow">
-        <label>WEEKLY GOAL (times per week):</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input class="win-input" id="editWeeklyTarget" type="number" min="1" max="7" style="width:80px;">
+      <div class="modal-form-row">
+        <label>PLANT TYPE:</label>
+        <select class="win-select" id="editPlant">
+          <option value="flower">🌸 Flower</option>
+          <option value="tree">🌳 Tree</option>
+          <option value="cactus">🌵 Cactus</option>
+          <option value="mushroom">🍄 Mushroom</option>
+          <option value="fern">🌿 Fern</option>
+        </select>
+      </div>
+
+      <div class="modal-form-row">
+        <label>HOW OFTEN?</label>
+        <select class="win-select" id="editFreqType" onchange="onEditFreqChange()">
+          <option value="daily">📅 Daily</option>
+          <option value="weekly">📆 Weekly</option>
+          <option value="monthly">🗓️ Monthly</option>
+        </select>
+      </div>
+
+      <div class="freq-sub" id="editSubDaily">
+        <label>🎯 DAYS IN A ROW TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="editDailyTarget" type="number" min="1" max="365" value="30">
+          <span style="font-family:'VT323',monospace;font-size:18px;">days in a row</span>
+        </div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 5 days → plant dies</span>
+      </div>
+      <div class="freq-sub" id="editSubWeekly">
+        <label>🎯 TIMES PER WEEK TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="editWeeklyTarget" type="number" min="1" max="7" value="3">
           <span style="font-family:'VT323',monospace;font-size:18px;">times / week</span>
         </div>
-        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 2 weeks → plant dies</div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 weeks → plant dies</span>
       </div>
-
-      <div class="modal-form-row" id="editMonthlyRow">
-        <label>MONTHLY GOAL (times per month):</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input class="win-input" id="editMonthlyTarget" type="number" min="1" max="31" style="width:80px;">
+      <div class="freq-sub" id="editSubMonthly">
+        <label>🎯 TIMES PER MONTH TO EARN FERTILIZER:</label>
+        <div class="sub-row">
+          <input class="win-input" id="editMonthlyTarget" type="number" min="1" max="31" value="12">
           <span style="font-family:'VT323',monospace;font-size:18px;">times / month</span>
         </div>
-        <div style="font-family:'VT323',monospace;font-size:14px;color:#666;margin-top:2px;">⚠️ Miss 2 months → plant dies</div>
+        <span style="font-family:'VT323',monospace;font-size:13px;color:#666;">⚠️ Miss 2 months → plant dies</span>
       </div>
 
-      <div class="modal-btn-row" style="gap:8px;display:flex;justify-content:center;">
-        <button class="action-btn" onclick="closeEdit()">[ Cancel ]</button>
-        <button class="action-btn primary" onclick="saveEdit()">[ ✅ Save Goal ]</button>
+      <hr class="modal-divider">
+
+      <div class="modal-btn-row" style="gap:8px;display:flex;justify-content:space-between;align-items:center;">
+        <button class="action-btn delete-habit-btn" onclick="deleteFromEdit()">[ 🗑️ Delete habit ]</button>
+        <div style="display:flex;gap:8px;">
+          <button class="action-btn" onclick="closeEdit()">[ Cancel ]</button>
+          <button class="action-btn primary" onclick="saveEdit()">[ ✅ Save ]</button>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -1370,9 +1404,8 @@ function renderHabits() {
       const rb=document.createElement('button');rb.className='replant-btn';rb.textContent='🌱 REPLANT';rb.onclick=e=>{e.stopPropagation();replantHabit(h.id);};
       row.append(check,name,tag,prog,healthEl,icon,rb);
     } else {
-      const edit=document.createElement('span');edit.className='edit-btn';edit.textContent='✏️';edit.title='Edit goal';edit.onclick=e=>{e.stopPropagation();openEdit(h.id);};
-      const del=document.createElement('span');del.className='delete-btn';del.textContent='✕';del.title='Remove habit';del.onclick=e=>{e.stopPropagation();deleteHabit(h.id);};
-      row.append(check,name,tag,prog,healthEl,icon,edit,del);
+      const edit=document.createElement('span');edit.className='edit-btn';edit.textContent='✏️';edit.title='Edit habit';edit.onclick=e=>{e.stopPropagation();openEdit(h.id);};
+      row.append(check,name,tag,prog,healthEl,icon,edit);
       row.onclick=()=>toggleHabit(h.id,row);
     }
     list.appendChild(row);
@@ -1476,50 +1509,96 @@ function celebUpGoal() {
 }
 
 // ═══════════════════════════════════════
-//  EDIT GOAL MODAL
+//  EDIT HABIT MODAL
 // ═══════════════════════════════════════
 let editHabitId = null;
+
+function onEditFreqChange() {
+  const v = document.getElementById('editFreqType').value;
+  ['Daily','Weekly','Monthly'].forEach(s =>
+    document.getElementById('editSub'+s).classList.toggle('visible', v === s.toLowerCase())
+  );
+}
+
 function openEdit(id) {
   const h = habits.find(x => x.id === id);
   if (!h) return;
   editHabitId = id;
-  document.getElementById('editHabitLabel').textContent = `✏️ "${h.name}"`;
-  // Show only the relevant row
-  document.getElementById('editDailyRow').style.display   = h.freq==='daily'   ? 'flex' : 'none';
-  document.getElementById('editWeeklyRow').style.display  = h.freq==='weekly'  ? 'flex' : 'none';
-  document.getElementById('editMonthlyRow').style.display = h.freq==='monthly' ? 'flex' : 'none';
-  // Pre-fill current value
-  if (h.freq==='daily')   document.getElementById('editDailyTarget').value   = h.dailyTarget   || 30;
-  if (h.freq==='weekly')  document.getElementById('editWeeklyTarget').value  = h.weeklyTarget  || 3;
-  if (h.freq==='monthly') document.getElementById('editMonthlyTarget').value = h.monthlyTarget || 12;
+
+  // Populate all fields with current values
+  document.getElementById('editName').value = h.name;
+  document.getElementById('editPlant').value = h.plantType;
+  document.getElementById('editFreqType').value = h.freq;
+  document.getElementById('editDailyTarget').value = h.dailyTarget || 30;
+  document.getElementById('editWeeklyTarget').value = h.weeklyTarget || 3;
+  document.getElementById('editMonthlyTarget').value = h.monthlyTarget || 12;
+
+  // Show the right freq sub-panel
+  onEditFreqChange();
+
   document.getElementById('editOverlay').classList.remove('hidden');
 }
+
 function closeEdit() {
   document.getElementById('editOverlay').classList.add('hidden');
   editHabitId = null;
 }
+
 function saveEdit() {
   const h = habits.find(x => x.id === editHabitId);
   if (!h) return;
-  if (h.freq==='daily') {
-    const newTarget = Math.max(1, parseInt(document.getElementById('editDailyTarget').value)||30);
+
+  const newName = document.getElementById('editName').value.trim();
+  if (!newName) { document.getElementById('editName').focus(); return; }
+
+  const newFreq = document.getElementById('editFreqType').value;
+  const freqChanged = newFreq !== h.freq;
+
+  h.name = newName;
+  h.plantType = document.getElementById('editPlant').value;
+
+  // If frequency changed, reset progress tracking for the new cadence
+  if (freqChanged) {
+    h.freq = newFreq;
+    h.streak = 0;
+    h.lastChecked = null;
+    h.lastCheckedWeek = null;
+    h.lastCheckedMonth = null;
+    h.weekChecks = {};
+    h.monthChecks = {};
+    h.missedPeriods = 0;
+    h.fertilized = false;
+    h.createdAt = new Date().toISOString(); // reset so missed-period logic restarts
+  }
+
+  if (newFreq === 'daily') {
+    const newTarget = Math.max(1, parseInt(document.getElementById('editDailyTarget').value) || 30);
     h.dailyTarget = newTarget;
-    // If current streak already meets new target, keep fertilized; else reset boost
-    if ((h.streak||0) < newTarget) h.fertilized = false;
+    if (!freqChanged && (h.streak || 0) < newTarget) h.fertilized = false;
   }
-  if (h.freq==='weekly') {
-    const newTarget = Math.max(1, Math.min(7, parseInt(document.getElementById('editWeeklyTarget').value)||3));
+  if (newFreq === 'weekly') {
+    const newTarget = Math.max(1, Math.min(7, parseInt(document.getElementById('editWeeklyTarget').value) || 3));
     h.weeklyTarget = newTarget;
-    if (((h.weekChecks||{})[weekStr()]||0) < newTarget) h.fertilized = false;
+    if (!freqChanged && ((h.weekChecks||{})[weekStr()]||0) < newTarget) h.fertilized = false;
   }
-  if (h.freq==='monthly') {
-    const newTarget = Math.max(1, Math.min(31, parseInt(document.getElementById('editMonthlyTarget').value)||12));
+  if (newFreq === 'monthly') {
+    const newTarget = Math.max(1, Math.min(31, parseInt(document.getElementById('editMonthlyTarget').value) || 12));
     h.monthlyTarget = newTarget;
-    if (((h.monthChecks||{})[monthStr()]||0) < newTarget) h.fertilized = false;
+    if (!freqChanged && ((h.monthChecks||{})[monthStr()]||0) < newTarget) h.fertilized = false;
   }
+
   save(); renderHabits(); renderGarden();
   closeEdit();
-  showToast(`🎯 Goal updated! New target: ${goalDesc(h)} — you've got this! 💪`);
+  showToast(`✅ "${h.name}" updated! New goal: ${goalDesc(h)} 🌱`);
+}
+
+function deleteFromEdit() {
+  const h = habits.find(x => x.id === editHabitId);
+  if (!h) return;
+  const name = h.name;
+  closeEdit();
+  deleteHabit(editHabitId);
+  showToast(`🗑️ "${name}" removed from your garden.`);
 }
 
 // ═══════════════════════════════════════
